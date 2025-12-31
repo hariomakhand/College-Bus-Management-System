@@ -1,26 +1,68 @@
-import mongoose from "mongoose";
+const mongoose = require("mongoose");
 
-const busSchema = new mongoose.Schema({
-    busNumber: { type: String, required: true, unique: true },
-    capacity: { type: Number, required: true },
-    driver: { type: mongoose.Schema.Types.ObjectId, ref: "Driver" },
-    route: { type: mongoose.Schema.Types.ObjectId, ref: "Route" },
-    status: { type: String, enum: ["active", "inactive", "maintenance"], default: "active" },
+const BusSchema = new mongoose.Schema({
+  busNumber: {
+    type: String,
+    required: true,
+    unique: true
+  },
+  capacity: {
+    type: Number,
+    required: true
+  },
+  driverId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Driver",
+    default: null
+  },
+  routeId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Route",
+    default: null
+  },
+  status: {
+    type: String,
+    enum: ["active", "maintenance", "inactive"],
+    default: "active"
+  },
+  model: {
+    type: String,
+    required: true
+  },
+  registrationNumber: {
+    type: String,
+    required: true,
+    unique: true
+  },
+  manufacturingYear: {
+    type: Number,
+    min: 2000,
+    max: new Date().getFullYear()
+  },
+  lastMaintenance: Date,
 
-    driver: { type: mongoose.Schema.Types.ObjectId, ref: "Driver" },  // Relation to Driver
-    route: { type: mongoose.Schema.Types.ObjectId, ref: "Route" },    // Relation to Route
-    students: [{ type: mongoose.Schema.Types.ObjectId, ref: "Student" }], // Reverse relation to students
-    notifications: [{ type: mongoose.Schema.Types.ObjectId, ref: "Notification" }],
+  // Location tracking fields
+  currentLocation: {
+    lat: { type: Number, min: -90, max: 90 },
+    lng: { type: Number, min: -180, max: 180 }
+  },
+  lastLocationUpdate: Date,
+  tripStatus: {
+    type: String,
+    enum: ["idle", "active", "ended"],
+    default: "idle"
+  },
 
-    // For verification
-    isVerified: { type: Boolean, default: false },
-    emailVerificationCode: { type: String }, // store OTP
-    emailVerificationExpiry: { type: Date }, // OTP expiry time
+  isDeleted: {
+    type: Boolean,
+    default: false
+  },
+  deletedAt: Date
+}, {
+  timestamps: true
+});
 
-    // forgate password ke liye
-    resetPasswordToken: String,
-    resetPasswordExpire: Date,
+// Index for soft delete queries
+BusSchema.index({ isDeleted: 1 });
 
-}, { timestamps: true });
-
-export default mongoose.model("Bus", busSchema);
+module.exports = mongoose.model("Bus", BusSchema);

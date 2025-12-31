@@ -7,7 +7,11 @@ A comprehensive bus management system built with React.js frontend and Node.js b
 - **Role-based Authentication**: Student, Driver, and Admin roles
 - **Email Verification**: OTP-based email verification system
 - **Password Reset**: Secure password reset functionality
-- **Bus Management**: Track buses, routes, and schedules
+- **Dynamic Admin Panel**: Real-time data from backend
+- **Bus Management**: Complete CRUD operations for buses with status tracking
+- **Driver Management**: Add, view, and manage drivers with full details
+- **Route Management**: Create and manage bus routes with stops and timing
+- **Dashboard Analytics**: Real-time statistics and visual charts
 - **User Management**: Manage students, drivers, and admins
 
 ## Tech Stack
@@ -63,6 +67,20 @@ EMAIL_PASS=your_app_password
 - `POST /api/auth/verify-email` - Email verification
 - `POST /api/auth/forgot-password` - Password reset request
 - `POST /api/auth/reset-password/:token` - Reset password
+
+### Admin Panel
+- `GET /api/admin/stats` - Dashboard statistics
+- `GET /api/admin/drivers` - Get all drivers
+- `POST /api/admin/drivers` - Add new driver
+- `DELETE /api/admin/drivers/:id` - Delete driver
+- `GET /api/admin/buses` - Get all buses
+- `POST /api/admin/buses` - Add new bus
+- `DELETE /api/admin/buses/:id` - Delete bus
+- `PUT /api/admin/buses/:id/status` - Update bus status
+- `GET /api/admin/routes` - Get all routes
+- `POST /api/admin/routes` - Add new route
+- `DELETE /api/admin/routes/:id` - Delete route
+- `PUT /api/admin/assign-bus` - Assign bus to driver
 
 ## Project Structure
 

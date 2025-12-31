@@ -2,9 +2,9 @@ const joi = require("joi");
 
 const SignupValidation = (req, res, next) => {
     const schema = joi.object({
-        name: joi.string().min(3).max(10).required(),
+        name: joi.string().min(4).max(20).required(),
         email: joi.string().email().required(),
-        password: joi.string().min(4).max(10).required()
+        password: joi.string().min(4).max(15).required()
     });
     
     const { error } = schema.validate(req.body);
@@ -19,8 +19,7 @@ const SignupValidation = (req, res, next) => {
 const LoginValidation = (req, res, next) => {
     const schema = joi.object({
         email: joi.string().email().required(),
-        password: joi.string().min(4).max(10).required(),
-        role: joi.string().valid('student', 'driver', 'admin').required()
+        password: joi.string().min(4).max(15).required()
     });
     
     const { error } = schema.validate(req.body);

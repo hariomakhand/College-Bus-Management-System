@@ -2,6 +2,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const UserModel = require("../models/Student");
 const AdminModel = require("../models/Admin");
+const DriverModel = require("../models/Driver");
 const nodemailer = require("nodemailer");
 const crypto = require("crypto");
 
@@ -30,8 +31,12 @@ const sendOTPEmail = async (email, otp) => {
 const signup = async (req, res) => {
     try {
         const { name, email, password } = req.body;
-
-        const existingUser = await UserModel.findOne({ email });
+        
+        // Auto-assign role as student for public signup
+        const role = "student";
+        const Model = UserModel; // Always use Student model for public signup
+        
+        const existingUser = await Model.findOne({ email });
         if (existingUser) {
             return res.status(409).json({
                 message: "User already exists",
@@ -42,10 +47,11 @@ const signup = async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, 10);
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-        const newUser = new UserModel({
+        const newUser = new Model({
             name,
             email,
             password: hashedPassword,
+            role,
             isVerified: false,
             emailVerificationCode: otp,
             emailVerificationExpiry: Date.now() + 5 * 60 * 1000 // 5 min
@@ -140,13 +146,29 @@ const resendOTP = async (req, res) => {
 // ---------------- Login ----------------
 const login = async (req, res) => {
     try {
-        const { email, password, role } = req.body;
-        if (role !== "student" && role !== "admin") {
-            return res.status(400).json({ message: "Invalid role", success: false });
+        const { email, password } = req.body;
+        
+        // Auto-detect role based on email and check all models
+        let user = null;
+        let userRole = null;
+        
+        // Check Admin first
+        user = await AdminModel.findOne({ email });
+        if (user) {
+            userRole = 'admin';
+        } else {
+            // Check Driver
+            user = await DriverModel.findOne({ email });
+            if (user) {
+                userRole = 'driver';
+            } else {
+                // Check Student
+                user = await UserModel.findOne({ email });
+                if (user) {
+                    userRole = 'student';
+                }
+            }
         }
-        // 👇 Role ke hisaab se alag model me search kar
-        const Model = role === "admin" ? AdminModel : UserModel;
-        const user = await Model.findOne({ email });
 
         if (!user) return res.status(404).json({ message: "User not found", success: false });
         if (!user.isVerified) return res.status(403).json({ message: "Please verify your email before login.", success: false });
@@ -154,15 +176,8 @@ const login = async (req, res) => {
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) return res.status(401).json({ message: "Invalid password", success: false });
 
-        if (user.role !== role) {
-            return res.status(403).json({
-                message: `Access denied: This account is not registered as ${role}`,
-                success: false,
-            });
-        }
-
         const token = jwt.sign(
-            { email: user.email, _id: user._id, role: user.role },
+            { email: user.email, _id: user._id, role: userRole },
             process.env.JWT_SECRET,
             { expiresIn: "24h" }
         );
@@ -177,7 +192,7 @@ const login = async (req, res) => {
         res.status(200).json({
             message: "Login successful",
             success: true,
-            user: { _id: user._id, name: user.name, email: user.email, role: user.role }
+            user: { _id: user._id, name: user.name, email: user.email, role: userRole }
         });
         console.log("Login successful");
         

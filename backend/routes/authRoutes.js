@@ -15,6 +15,7 @@ router.get("/check", AuthProtect, (req, res) => {
 
 
 
+
 router.get("/admin-dashboard", AuthProtect, roleMiddleware("admin"), (req, res) => {
   res.json({ message: "Welcome Admin", user: req.user });
 });
@@ -27,7 +28,7 @@ router.get("/student-dashboard", AuthProtect, roleMiddleware("student"), (req, r
   res.json({ message: "Welcome Student", user: req.user });
 });
 
-router.get("/logout", (req, res) => {
+router.post("/logout", (req, res) => {
   const token = req.cookies?.token;
 
   if (token) {

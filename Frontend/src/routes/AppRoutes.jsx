@@ -1,36 +1,43 @@
 // routes/AppRoutes.jsx
 import React, { Suspense, lazy } from "react";
 import { createBrowserRouter } from "react-router-dom";
-import MainLayout from "../components/layouts/MainLayout";
-import ProtectedRoute from "./ProtectedRoute";
-import RoleRoute from "./RoleRoute";
+
+import ProtectedRoute from "../components/ProtectedRoute";
+
 
 
 // Lazy loaded pages
 const Signup = lazy(() => import("../pages/Signup"));
 const Login = lazy(() => import("../pages/Login"));
 const Dashboard = lazy(() => import("../pages/Dashboard"));
-const StudentPanel = lazy(() => import("../pages/StudentPanel"));
- const DriverPanel = lazy(() => import("../pages/DriverPanel"));
-
 
 
 const AdminPanel = lazy(() => import("../pages/AdminPanel"));
-const VerifyEmail = lazy(() => import("../pages/VerifyEmail"));
+const StudentPanel = lazy(() => import("../pages/StudentPanel"));
+const DriverPanel = lazy(() => import("../pages/Driverpanel"));
+const StudentAuth = lazy(() => import("../pages/StudentAuth"));
+const StudentTest = lazy(() => import("../pages/StudentTest"));
+const EmailVerification = lazy(() => import("../pages/EmailVerification"));
 const ForgotPassword = lazy(() => import("../pages/ForgotPassword")); // ✅ Added
 const ResetPassword = lazy(() => import("../pages/ResetPassword"));   // ✅ Added
 const NotFound = lazy(() => import("../pages/NotFound"));
 
 const router = createBrowserRouter([
-  {
-    path: "/",
-    element: <MainLayout />,
-    children: [
+
       {
         path: "/",
         element: (
           <Suspense fallback={<div>Loading...</div>}>
             <Dashboard />
+          </Suspense>
+        ),
+      },
+
+      {
+        path: "/auth",
+        element: (
+          <Suspense fallback={<div>Loading...</div>}>
+            <Login />
           </Suspense>
         ),
       },
@@ -50,11 +57,12 @@ const router = createBrowserRouter([
           </Suspense>
         ),
       },
+
       {
         path: "/verify-email",
         element: (
           <Suspense fallback={<div>Loading...</div>}>
-            <VerifyEmail />
+            <EmailVerification />
           </Suspense>
         ),
       },
@@ -74,53 +82,82 @@ const router = createBrowserRouter([
           </Suspense>
         ),
       },
+      // {
+      //   path: "/Dashboard",
+      //   element: (
+          
+      //       <Suspense fallback={<div>Loading...</div>}>
+      //         <Dashboard />
+      //       </Suspense>
+          
+      //   ),
+      // },
+      // Uncomment if you want to use admin route later
       {
-        path: "/Dashboard",
+        path: "/admin",
         element: (
-          <ProtectedRoute>
+          <ProtectedRoute requiredRole="admin">
             <Suspense fallback={<div>Loading...</div>}>
-              <Dashboard />
+              <AdminPanel />
             </Suspense>
           </ProtectedRoute>
         ),
       },
-      // Uncomment if you want to use admin route later
       {
         path: "/admin-dashboard",
         element: (
-          <ProtectedRoute>
-            <RoleRoute role="admin">
-              <Suspense fallback={<div>Loading...</div>}>
-                <AdminPanel />
-              </Suspense>
-            </RoleRoute>
+          <ProtectedRoute requiredRole="admin">
+            <Suspense fallback={<div>Loading...</div>}>
+              <AdminPanel />
+            </Suspense>
           </ProtectedRoute>
         ),
       },
         {
         path: "/driver-dashboard",
         element: (
-          <ProtectedRoute>
-            <RoleRoute role="Driver">
-              <Suspense fallback={<div>Loading...</div>}>
-                <DriverPanel/>
-              </Suspense>
-            </RoleRoute>
+          <ProtectedRoute requiredRole="driver">
+            <Suspense fallback={<div>Loading...</div>}>
+              <DriverPanel />
+            </Suspense>
           </ProtectedRoute>
         ),
       },
-       {
+      {
+        path: "/student-auth",
+        element: (
+          <Suspense fallback={<div>Loading...</div>}>
+            <StudentAuth />
+          </Suspense>
+        ),
+      },
+      {
+        path: "/student-panel",
+        element: (
+          <Suspense fallback={<div>Loading...</div>}>
+            <StudentPanel />
+          </Suspense>
+        ),
+      },
+      {
         path: "/student-dashboard",
         element: (
-          <ProtectedRoute>
-            <RoleRoute role="student">
-              <Suspense fallback={<div>Loading...</div>}>
-                <StudentPanel />
-              </Suspense>
-            </RoleRoute>
+          <ProtectedRoute requiredRole="student">
+            <Suspense fallback={<div>Loading...</div>}>
+              <StudentPanel />
+            </Suspense>
           </ProtectedRoute>
         ),
       },
+      {
+        path: "/student-test",
+        element: (
+          <Suspense fallback={<div>Loading...</div>}>
+            <StudentTest />
+          </Suspense>
+        ),
+      },
+
 
 
       {
@@ -131,8 +168,8 @@ const router = createBrowserRouter([
           </Suspense>
         ),
       },
-    ],
-  },
+    
+  
 ]);
 
 export default router;

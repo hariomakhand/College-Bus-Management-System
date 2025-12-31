@@ -9,7 +9,12 @@ const AuthProtect = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded; // contains _id, email, role
+    req.user = {
+      id: decoded._id || decoded.id,
+      _id: decoded._id || decoded.id,
+      email: decoded.email,
+      role: decoded.role
+    };
     next();
   } catch (err) {
     return res.status(401).json({ message: "Unauthorized", success: false });

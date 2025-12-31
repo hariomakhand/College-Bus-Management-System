@@ -1,12 +1,77 @@
 // AuthContext.js
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // Check if user is authenticated on app load
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const res = await fetch("http://localhost:5001/api/auth/check", {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json"
+          }
+        });
+        
+        if (res.ok) {
+          const data = await res.json();
+          if (data.isAuth) {
+            setUser(data.user);
+          }
+        }
+      } catch (err) {
+        console.log("Not authenticated");
+      } finally {
+        setLoading(false);
+      }
+    };
+    checkAuth();
+  }, []);
+
+  const updateUser = (userData) => {
+    setUser(userData);
+  };
+
+  const logout = async () => {
+    console.log("🔄 Logout function called");
+    try {
+      console.log("📡 Calling backend logout...");
+      // Call backend to clear JWT cookies
+      await fetch("http://localhost:5001/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json"
+        }
+      });
+      console.log("✅ Backend logout successful");
+    } catch (err) {
+      console.log("❌ Backend logout error (continuing with frontend cleanup):", err);
+    }
+    
+    console.log("🧹 Clearing frontend data...");
+    setUser(null);
+    localStorage.clear();
+    sessionStorage.clear();
+    
+    // Clear frontend cookies as backup
+    document.cookie.split(";").forEach(function(c) { 
+      const eqPos = c.indexOf("=");
+      const name = eqPos > -1 ? c.substr(0, eqPos).trim() : c.trim();
+      document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+    });
+    
+    console.log("✅ Complete logout finished");
+  };
+
   return (
-    <AuthContext.Provider value={{ user, setUser }}>
+    <AuthContext.Provider value={{ user, setUser: updateUser, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );
