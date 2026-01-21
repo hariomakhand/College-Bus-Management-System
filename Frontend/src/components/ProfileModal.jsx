@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Save, User, Mail, Phone, Home, Calendar, Settings, AlertTriangle } from 'lucide-react';
+import { X, Save, User, Mail, Phone, Home, Calendar, Settings, AlertTriangle, Camera, Upload } from 'lucide-react';
 
 const ProfileModal = ({ isOpen, onClose, userData, onSave, isLoading }) => {
   const [formData, setFormData] = useState({
@@ -11,6 +11,9 @@ const ProfileModal = ({ isOpen, onClose, userData, onSave, isLoading }) => {
     emergencyContact: userData?.emergencyContact || ''
   });
   const [errors, setErrors] = useState({});
+  const [profileImage, setProfileImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(userData?.profileImage?.url || null);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   const departments = ['ITEG', 'MEG', 'BTECH', 'BEG'];
 
@@ -52,7 +55,58 @@ const ProfileModal = ({ isOpen, onClose, userData, onSave, isLoading }) => {
       emergencyContact: userData?.emergencyContact || ''
     });
     setErrors({});
+    setProfileImage(null);
+    setImagePreview(userData?.profileImage?.url || null);
     onClose();
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Image size should be less than 5MB');
+        return;
+      }
+      
+      setProfileImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const uploadProfileImage = async () => {
+    if (!profileImage) return;
+    
+    setUploadingImage(true);
+    const formData = new FormData();
+    formData.append('profileImage', profileImage);
+    
+    try {
+      const response = await fetch('http://localhost:5001/api/student/upload-profile-image', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData
+      });
+      
+      const result = await response.json();
+      if (result.success) {
+        alert('Profile image uploaded successfully!');
+        setProfileImage(null);
+        // Trigger parent component refresh
+        if (onSave) {
+          onSave({ refreshOnly: true });
+        }
+      } else {
+        alert('Failed to upload image: ' + result.message);
+      }
+    } catch (error) {
+      alert('Error uploading image: ' + error.message);
+    } finally {
+      setUploadingImage(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -79,6 +133,46 @@ const ProfileModal = ({ isOpen, onClose, userData, onSave, isLoading }) => {
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
           <div className="space-y-6">
+            {/* Profile Image Upload */}
+            <div className="text-center">
+              <label className="flex items-center justify-center gap-2 text-sm font-bold text-gray-700 mb-4">
+                <Camera size={16} className="text-blue-600" />
+                Profile Photo
+              </label>
+              <div className="flex flex-col items-center space-y-4">
+                <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-gray-200 bg-gray-100">
+                  {imagePreview ? (
+                    <img src={imagePreview} alt="Profile" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <User className="text-gray-400" size={32} />
+                    </div>
+                  )}
+                </div>
+                <div className="flex space-x-2">
+                  <label className="cursor-pointer px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm flex items-center gap-2">
+                    <Upload size={16} />
+                    Choose Photo
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      className="hidden"
+                    />
+                  </label>
+                  {profileImage && (
+                    <button
+                      type="button"
+                      onClick={uploadProfileImage}
+                      disabled={uploadingImage}
+                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm disabled:opacity-50"
+                    >
+                      {uploadingImage ? 'Uploading...' : 'Upload'}
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
             {/* Name */}
             <div>
               <label className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-2">

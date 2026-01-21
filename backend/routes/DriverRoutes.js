@@ -4,7 +4,8 @@ const {
   updateDriverProfile, 
   updateBusLocation, 
   endTrip, 
-  getBusLocation 
+  getBusLocation,
+  sendNotificationToStudents
 } = require('../controllers/DriverController');
 const AuthProtect = require('../middlewares/AuthProtect');
 
@@ -21,8 +22,7 @@ router.post('/update-location', AuthProtect, updateBusLocation);
 router.post('/end-trip', AuthProtect, endTrip);
 router.get('/bus-location/:busNumber', getBusLocation);
 
-
-
-
+// Notifications
+router.post('/send-notification', AuthProtect, sendNotificationToStudents);
 
 module.exports = router;

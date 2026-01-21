@@ -3,19 +3,23 @@ import { useAuth } from '../Context/AuthContext';
 import { useLogout } from '../hooks/useLogout';
 import {
   useGetDriverDashboardQuery,
-  useUpdateDriverProfileMutation
+  useUpdateDriverProfileMutation,
+  useSendDriverNotificationMutation
 } from '../store/apiSlice';
 import {
   User, Bus, MapPin, Clock, Users, Phone, Mail, Settings,
-  Home, Route, Calendar, MessageSquare, CheckCircle, AlertTriangle
+  Home, Route, Calendar, MessageSquare, CheckCircle, AlertTriangle, Navigation, Send
 } from 'lucide-react';
 import LiveTrackingMap from '../components/LiveTrackingMap';
-import GPSTest from '../components/GPSTest';
+import LocationSyncTest from '../components/LocationSyncTest';
+
 import io from 'socket.io-client';
 
 const DriverPanel = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [socket, setSocket] = useState(null);
+  const [notificationMessage, setNotificationMessage] = useState('');
+  const [notificationType, setNotificationType] = useState('info');
   const [profileData, setProfileData] = useState({
     name: '',
     phoneNumber: '',
@@ -29,6 +33,7 @@ const DriverPanel = () => {
   // RTK Query hooks
   const { data: driverData, isLoading: loading, refetch } = useGetDriverDashboardQuery();
   const [updateProfile, { isLoading: updateLoading }] = useUpdateDriverProfileMutation();
+  const [sendNotification, { isLoading: sendingNotification }] = useSendDriverNotificationMutation();
 
   // Socket.IO connection
   useEffect(() => {
@@ -69,6 +74,9 @@ const DriverPanel = () => {
   React.useEffect(() => {
     if (driverData?.data?.driver) {
       const driver = driverData.data.driver;
+      console.log('Driver data loaded:', driverData.data);
+      console.log('Assigned route:', driverData.data.assignedRoute);
+      
       setProfileData({
         name: driver.name || '',
         phoneNumber: driver.phoneNumber || '',
@@ -76,6 +84,13 @@ const DriverPanel = () => {
         emergencyContact: driver.emergencyContact || '',
         experience: driver.experience || ''
       });
+      
+      // Log current location for debugging
+      if (driver.currentLocation) {
+        console.log('Driver current location:', driver.currentLocation);
+      } else {
+        console.log('No current location found for driver');
+      }
     }
   }, [driverData]);
 
@@ -90,11 +105,33 @@ const DriverPanel = () => {
     }
   };
 
+  const handleSendNotification = async (e) => {
+    e.preventDefault();
+    if (!notificationMessage.trim()) {
+      alert('Please enter a notification message');
+      return;
+    }
+
+    try {
+      const result = await sendNotification({
+        message: notificationMessage,
+        type: notificationType
+      }).unwrap();
+      
+      alert(`Notification sent to ${result.studentsNotified} students successfully!`);
+      setNotificationMessage('');
+      setNotificationType('info');
+    } catch (error) {
+      alert('Error sending notification: ' + (error.data?.message || error.message));
+    }
+  };
+
   const tabs = [
     { id: 'dashboard', name: 'Dashboard', icon: Home },
     { id: 'tracking', name: 'GPS Tracking', icon: MapPin },
     { id: 'students', name: 'Students', icon: Users },
     { id: 'route', name: 'Route', icon: Route },
+    { id: 'notifications', name: 'Notifications', icon: MessageSquare },
     { id: 'profile', name: 'Profile', icon: User }
   ];
 
@@ -112,14 +149,22 @@ const DriverPanel = () => {
   const renderDashboard = () => (
     <div className="space-y-8">
       {/* Welcome Section */}
-      <div className="bg-gradient-to-r from-green-600 to-blue-700 rounded-2xl shadow-xl p-8 text-white">
+      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl shadow-xl p-8 text-white">
         <div className="flex items-center space-x-4">
-          <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-            <User className="text-white" size={32} />
+          <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center overflow-hidden">
+            {driverData?.data?.driver?.profileImage?.url ? (
+              <img
+                src={driverData.data.driver.profileImage.url}
+                alt="Driver Profile"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <User className="text-white" size={32} />
+            )}
           </div>
           <div>
             <h1 className="text-3xl font-bold">Welcome, {driverData?.data?.driver?.name || 'Driver'}!</h1>
-            <p className="text-blue-100 mt-1">{driverData?.data?.driver?.email} • License: {driverData?.data?.driver?.licenseNumber || 'N/A'}</p>
+            <p className="text-white opacity-90 mt-1">{driverData?.data?.driver?.email} • License: {driverData?.data?.driver?.licenseNumber || 'N/A'}</p>
           </div>
         </div>
       </div>
@@ -138,39 +183,39 @@ const DriverPanel = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500">
+        <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-400">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Total Students</p>
-              <p className="text-2xl font-bold text-green-600">
+              <p className="text-2xl font-bold text-blue-600">
                 {driverData?.data?.stats?.totalStudents || 0}
               </p>
             </div>
-            <Users className="text-green-500" size={32} />
+            <Users className="text-blue-400" size={32} />
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-purple-500">
+        <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-indigo-500">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Bus Capacity</p>
-              <p className="text-2xl font-bold text-purple-600">
+              <p className="text-2xl font-bold text-indigo-600">
                 {driverData?.data?.stats?.busCapacity || 0}
               </p>
             </div>
-            <CheckCircle className="text-purple-500" size={32} />
+            <CheckCircle className="text-indigo-500" size={32} />
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-orange-500">
+        <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-sky-500">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Available Seats</p>
-              <p className="text-2xl font-bold text-orange-600">
+              <p className="text-2xl font-bold text-sky-600">
                 {driverData?.data?.stats?.availableSeats || 0}
               </p>
             </div>
-            <AlertTriangle className="text-orange-500" size={32} />
+            <AlertTriangle className="text-sky-500" size={32} />
           </div>
         </div>
       </div>
@@ -192,17 +237,17 @@ const DriverPanel = () => {
               <p className="text-2xl font-bold text-gray-900">{driverData.data.driver.assignedBus.busNumber}</p>
             </div>
 
-            <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-xl">
+            <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 p-6 rounded-xl">
               <div className="flex items-center space-x-3 mb-3">
-                <Settings className="text-green-600" size={24} />
+                <Settings className="text-indigo-600" size={24} />
                 <span className="text-sm font-medium text-gray-600">Model</span>
               </div>
               <p className="text-xl font-bold text-gray-900">{driverData.data.driver.assignedBus.model}</p>
             </div>
 
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-xl">
+            <div className="bg-gradient-to-br from-sky-50 to-sky-100 p-6 rounded-xl">
               <div className="flex items-center space-x-3 mb-3">
-                <Users className="text-purple-600" size={24} />
+                <Users className="text-sky-600" size={24} />
                 <span className="text-sm font-medium text-gray-600">Capacity</span>
               </div>
               <p className="text-xl font-bold text-gray-900">{driverData.data.driver.assignedBus.capacity} seats</p>
@@ -220,74 +265,208 @@ const DriverPanel = () => {
           <MapPin className="mr-3 text-blue-600" size={28} />
           Live GPS Tracking
         </h2>
-        <div className="text-sm text-gray-500">
-          Bus: {driverData?.data?.driver?.assignedBus?.busNumber || 'Not Assigned'}
-        </div>
+        {driverData?.data?.driver?.assignedBus && (
+          <div className="bg-blue-50 px-4 py-2 rounded-full border border-blue-200">
+            <span className="text-blue-700 font-medium text-sm">
+              Bus: {driverData.data.driver.assignedBus.busNumber}
+            </span>
+          </div>
+        )}
       </div>
 
-      {/* GPS Test Component */}
-      <GPSTest />
-
-      <LiveTrackingMap
-        route={driverData?.data?.assignedRoute}
-        busNumber={driverData?.data?.driver?.assignedBus?.busNumber}
-        driverId={driverData?.data?.driver?._id}
-        socket={socket}
-      />
+      {driverData?.data?.driver?.assignedBus ? (
+        <div className="space-y-6">
+          <LiveTrackingMap
+            route={driverData?.data?.assignedRoute}
+            busNumber={driverData?.data?.driver?.assignedBus?.busNumber}
+            driverId={driverData?.data?.driver?._id}
+            socket={socket}
+          />
+        </div>
+      ) : (
+        <div className="bg-white rounded-2xl shadow-lg p-12 text-center border border-gray-100">
+          <div className="w-20 h-20 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <MapPin className="text-gray-400" size={40} />
+          </div>
+          <h3 className="text-xl font-bold text-gray-900 mb-3">No Bus Assigned</h3>
+          <p className="text-gray-600 mb-6">You need to have a bus assigned to start GPS tracking.</p>
+          <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 inline-block">
+            <div className="flex items-center space-x-2">
+              <AlertTriangle className="text-yellow-600" size={18} />
+              <span className="text-yellow-800 font-medium text-sm">Contact admin for bus assignment</span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 
   const renderRoute = () => (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-gray-900">Route Information</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-gray-900 flex items-center">
+          <Route className="mr-3 text-blue-600" size={28} />
+          My Route
+        </h2>
+        {driverData?.data?.assignedRoute && (
+          <div className="bg-blue-50 px-4 py-2 rounded-full border border-blue-200">
+            <span className="text-blue-700 font-medium text-sm">
+              {driverData.data.assignedRoute.routeNumber}
+            </span>
+          </div>
+        )}
+      </div>
 
       {driverData?.data?.assignedRoute ? (
-        <div className="bg-white rounded-2xl shadow-xl p-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Route Details</h3>
-              <div className="space-y-3">
-                <div className="flex items-center space-x-3">
-                  <Route className="text-blue-600" size={20} />
-                  <span className="font-medium">Route Name:</span>
-                  <span className="text-gray-700">{driverData.data.assignedRoute.routeName}</span>
+        <div className="space-y-6">
+          {/* Route Overview */}
+          <div className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl p-8 text-white">
+            <div className="text-center mb-6">
+              <h3 className="text-2xl font-bold mb-2">{driverData.data.assignedRoute.routeName}</h3>
+              <p className="text-blue-100">{driverData.data.assignedRoute.startPoint} → {driverData.data.assignedRoute.endPoint}</p>
+            </div>
+            
+            <div className="grid grid-cols-3 gap-6">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-white bg-opacity-20 rounded-xl flex items-center justify-center mx-auto mb-3">
+                  <Clock className="text-white" size={28} />
                 </div>
-                <div className="flex items-center space-x-3">
-                  <Clock className="text-green-600" size={20} />
-                  <span className="font-medium">Start Time:</span>
-                  <span className="text-gray-700">{driverData.data.assignedRoute.startTime}</span>
+                <h4 className="text-xl font-bold">{driverData.data.assignedRoute.estimatedTime} min</h4>
+                <p className="text-blue-100 text-sm">Duration</p>
+              </div>
+              <div className="text-center">
+                <div className="w-16 h-16 bg-white bg-opacity-20 rounded-xl flex items-center justify-center mx-auto mb-3">
+                  <MapPin className="text-white" size={28} />
                 </div>
-                <div className="flex items-center space-x-3">
-                  <Clock className="text-red-600" size={20} />
-                  <span className="font-medium">End Time:</span>
-                  <span className="text-gray-700">{driverData.data.assignedRoute.endTime}</span>
+                <h4 className="text-xl font-bold">{driverData.data.assignedRoute.distance} km</h4>
+                <p className="text-blue-100 text-sm">Distance</p>
+              </div>
+              <div className="text-center">
+                <div className="w-16 h-16 bg-white bg-opacity-20 rounded-xl flex items-center justify-center mx-auto mb-3">
+                  <Users className="text-white" size={28} />
+                </div>
+                <h4 className="text-xl font-bold">{driverData?.data?.stats?.totalStudents || 0}</h4>
+                <p className="text-blue-100 text-sm">Students</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Route Details & Stops */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Route Information */}
+            <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+              <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center">
+                <Settings className="mr-3 text-blue-600" size={20} />
+                Route Details
+              </h3>
+              
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
+                  <MapPin className="text-green-600" size={18} />
+                  <div>
+                    <p className="font-medium text-gray-900">Start Point</p>
+                    <p className="text-gray-600 text-sm">{driverData.data.assignedRoute.startPoint}</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-3 p-3 bg-red-50 rounded-lg">
+                  <MapPin className="text-red-600" size={18} />
+                  <div>
+                    <p className="font-medium text-gray-900">End Point</p>
+                    <p className="text-gray-600 text-sm">{driverData.data.assignedRoute.endPoint}</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg">
+                  <Clock className="text-blue-600" size={18} />
+                  <div>
+                    <p className="font-medium text-gray-900">Operating Hours</p>
+                    <p className="text-gray-600 text-sm">
+                      {driverData.data.assignedRoute.startTime || '7:00 AM'} - {driverData.data.assignedRoute.endTime || '6:00 PM'}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Bus Stops</h3>
-              <div className="space-y-2 max-h-64 overflow-y-auto">
-                {driverData.data.assignedRoute.stops?.map((stop, index) => (
-                  <div key={index} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                    <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
-                      {index + 1}
+            {/* Bus Stops */}
+            <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-bold text-gray-900 flex items-center">
+                  <Users className="mr-3 text-green-600" size={20} />
+                  Bus Stops
+                </h3>
+                <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-medium">
+                  {driverData.data.assignedRoute.stops?.length || 0} stops
+                </span>
+              </div>
+              
+              <div className="space-y-3 max-h-64 overflow-y-auto">
+                {driverData.data.assignedRoute.stops?.length > 0 ? (
+                  driverData.data.assignedRoute.stops.map((stop, index) => (
+                    <div key={index} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-blue-50 transition-colors">
+                      <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                        {index + 1}
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium text-gray-900">{stop.stopName}</p>
+                        <p className="text-xs text-gray-500 flex items-center">
+                          <Clock className="mr-1" size={12} />
+                          {stop.timing}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-medium text-gray-900">{stop.stopName}</p>
-                      <p className="text-sm text-gray-600">{stop.timing}</p>
-                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8">
+                    <MapPin className="mx-auto text-gray-300 mb-2" size={32} />
+                    <p className="text-gray-500 text-sm">No stops defined</p>
                   </div>
-                ))}
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Stats */}
+          <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+            <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center">
+              <CheckCircle className="mr-3 text-purple-600" size={20} />
+              Route Summary
+            </h3>
+            
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="text-center p-4 bg-blue-50 rounded-xl">
+                <div className="text-2xl font-bold text-blue-600">{driverData.data.assignedRoute.stops?.length || 0}</div>
+                <div className="text-xs text-gray-600 mt-1">Stops</div>
+              </div>
+              <div className="text-center p-4 bg-green-50 rounded-xl">
+                <div className="text-2xl font-bold text-green-600">{driverData.data.assignedRoute.distance}</div>
+                <div className="text-xs text-gray-600 mt-1">KM</div>
+              </div>
+              <div className="text-center p-4 bg-purple-50 rounded-xl">
+                <div className="text-2xl font-bold text-purple-600">{driverData.data.assignedRoute.estimatedTime}</div>
+                <div className="text-xs text-gray-600 mt-1">Minutes</div>
+              </div>
+              <div className="text-center p-4 bg-orange-50 rounded-xl">
+                <div className="text-2xl font-bold text-orange-600">{driverData?.data?.stats?.totalStudents || 0}</div>
+                <div className="text-xs text-gray-600 mt-1">Students</div>
               </div>
             </div>
           </div>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
-          <Route className="mx-auto text-gray-400 mb-4" size={64} />
-          <h3 className="text-xl font-bold text-gray-900 mb-2">No Route Assigned</h3>
-          <p className="text-gray-600">Contact admin to get a route assigned to your bus.</p>
+        <div className="bg-white rounded-2xl shadow-lg p-12 text-center border border-gray-100">
+          <div className="w-20 h-20 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <Route className="text-gray-400" size={40} />
+          </div>
+          <h3 className="text-xl font-bold text-gray-900 mb-3">No Route Assigned</h3>
+          <p className="text-gray-600 mb-6">Contact your administrator to get a route assigned.</p>
+          <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 inline-block">
+            <div className="flex items-center space-x-2">
+              <AlertTriangle className="text-yellow-600" size={18} />
+              <span className="text-yellow-800 font-medium text-sm">Waiting for Assignment</span>
+            </div>
+          </div>
         </div>
       )}
     </div>
@@ -314,8 +493,18 @@ const DriverPanel = () => {
                   <tr key={student._id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
-                          <span className="text-white font-semibold">{student.name?.charAt(0)}</span>
+                        <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-200 bg-gray-100">
+                          {student.profileImage?.url ? (
+                            <img 
+                              src={student.profileImage.url} 
+                              alt={student.name} 
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-blue-600 flex items-center justify-center">
+                              <span className="text-white font-semibold text-sm">{student.name?.charAt(0)}</span>
+                            </div>
+                          )}
                         </div>
                         <div className="ml-4">
                           <div className="text-sm font-medium text-gray-900">{student.name}</div>
@@ -348,75 +537,428 @@ const DriverPanel = () => {
   );
 
   const renderProfile = () => (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-gray-900">Profile Settings</h2>
-
-      <div className="bg-white rounded-2xl shadow-xl p-8">
-        <form onSubmit={handleProfileUpdate} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
-              <input
-                type="text"
-                value={profileData.name}
-                onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                required
+    <div className="space-y-8">
+      {/* Profile Header */}
+      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl shadow-xl p-8 text-white">
+        <div className="flex items-center space-x-6">
+          <div className="w-24 h-24 bg-white bg-opacity-20 rounded-full flex items-center justify-center overflow-hidden">
+            {driverData?.data?.driver?.profileImage?.url ? (
+              <img
+                src={driverData.data.driver.profileImage.url}
+                alt="Driver Profile"
+                className="w-full h-full object-cover"
               />
-            </div>
+            ) : (
+              <User className="text-white" size={40} />
+            )}
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold">{driverData?.data?.driver?.name || 'Driver Profile'}</h1>
+            <p className="text-blue-100 mt-2 flex items-center">
+              <Mail className="mr-2" size={16} />
+              {driverData?.data?.driver?.email}
+            </p>
+            <p className="text-blue-100 flex items-center mt-1">
+              <Settings className="mr-2" size={16} />
+              License: {driverData?.data?.driver?.licenseNumber || 'Not provided'}
+            </p>
+          </div>
+        </div>
+      </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
-              <input
-                type="tel"
-                value={profileData.phoneNumber}
-                onChange={(e) => setProfileData({ ...profileData, phoneNumber: e.target.value })}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
-              <input
-                type="text"
-                value={profileData.address}
-                onChange={(e) => setProfileData({ ...profileData, address: e.target.value })}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Emergency Contact</label>
-              <input
-                type="tel"
-                value={profileData.emergencyContact}
-                onChange={(e) => setProfileData({ ...profileData, emergencyContact: e.target.value })}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Experience (Years)</label>
-              <input
-                type="number"
-                value={profileData.experience}
-                onChange={(e) => setProfileData({ ...profileData, experience: e.target.value })}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                min="0"
-                max="50"
-              />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Profile Information Cards */}
+        <div className="lg:col-span-1 space-y-6">
+          {/* Quick Stats */}
+          <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+              <CheckCircle className="mr-3 text-green-600" size={20} />
+              Profile Status
+            </h3>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                <span className="text-sm font-medium text-gray-700">Account Status</span>
+                <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-medium">
+                  Active
+                </span>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                <span className="text-sm font-medium text-gray-700">Bus Assigned</span>
+                <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                  driverData?.data?.driver?.assignedBus 
+                    ? 'bg-green-100 text-green-800' 
+                    : 'bg-yellow-100 text-yellow-800'
+                }`}>
+                  {driverData?.data?.driver?.assignedBus?.busNumber || 'Pending'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
+                <span className="text-sm font-medium text-gray-700">Experience</span>
+                <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-xs font-medium">
+                  {profileData.experience || '0'} Years
+                </span>
+              </div>
             </div>
           </div>
 
-          <button
-            type="submit"
-            disabled={updateLoading}
-            className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50"
-          >
-            {updateLoading ? 'Updating...' : 'Update Profile'}
-          </button>
-        </form>
+          {/* Contact Information */}
+          <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+              <Phone className="mr-3 text-blue-600" size={20} />
+              Contact Info
+            </h3>
+            <div className="space-y-3">
+              <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                <Phone className="text-gray-500" size={16} />
+                <div>
+                  <p className="text-xs text-gray-500">Phone</p>
+                  <p className="font-medium text-gray-900">
+                    {profileData.phoneNumber || 'Not provided'}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                <AlertTriangle className="text-gray-500" size={16} />
+                <div>
+                  <p className="text-xs text-gray-500">Emergency Contact</p>
+                  <p className="font-medium text-gray-900">
+                    {profileData.emergencyContact || 'Not provided'}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                <MapPin className="text-gray-500" size={16} />
+                <div>
+                  <p className="text-xs text-gray-500">Address</p>
+                  <p className="font-medium text-gray-900">
+                    {profileData.address || 'Not provided'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Profile Form */}
+        <div className="lg:col-span-2">
+          <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-gray-900 flex items-center">
+                <Settings className="mr-3 text-blue-600" size={24} />
+                Edit Profile Information
+              </h3>
+              <div className="text-sm text-gray-500">
+                Last updated: {new Date().toLocaleDateString()}
+              </div>
+            </div>
+
+            <form onSubmit={handleProfileUpdate} className="space-y-6">
+              {/* Personal Information Section */}
+              <div className="border-b border-gray-200 pb-6">
+                <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <User className="mr-2 text-gray-600" size={18} />
+                  Personal Information
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Full Name *
+                    </label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                      <input
+                        type="text"
+                        value={profileData.name}
+                        onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
+                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        placeholder="Enter your full name"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Experience (Years)
+                    </label>
+                    <div className="relative">
+                      <Settings className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                      <input
+                        type="number"
+                        value={profileData.experience}
+                        onChange={(e) => setProfileData({ ...profileData, experience: e.target.value })}
+                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        placeholder="Years of driving experience"
+                        min="0"
+                        max="50"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Contact Information Section */}
+              <div className="border-b border-gray-200 pb-6">
+                <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <Phone className="mr-2 text-gray-600" size={18} />
+                  Contact Information
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Phone Number
+                    </label>
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                      <input
+                        type="tel"
+                        value={profileData.phoneNumber}
+                        onChange={(e) => setProfileData({ ...profileData, phoneNumber: e.target.value })}
+                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        placeholder="Enter your phone number"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Emergency Contact
+                    </label>
+                    <div className="relative">
+                      <AlertTriangle className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                      <input
+                        type="tel"
+                        value={profileData.emergencyContact}
+                        onChange={(e) => setProfileData({ ...profileData, emergencyContact: e.target.value })}
+                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        placeholder="Emergency contact number"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Address Section */}
+              <div className="pb-6">
+                <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <MapPin className="mr-2 text-gray-600" size={18} />
+                  Address Information
+                </h4>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Home Address
+                  </label>
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-3 text-gray-400" size={18} />
+                    <textarea
+                      value={profileData.address}
+                      onChange={(e) => setProfileData({ ...profileData, address: e.target.value })}
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
+                      placeholder="Enter your complete address"
+                      rows={3}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-4 pt-6">
+                <button
+                  type="submit"
+                  disabled={updateLoading}
+                  className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-6 rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                >
+                  {updateLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                      <span>Updating...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle size={18} />
+                      <span>Update Profile</span>
+                    </>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (driverData?.data?.driver) {
+                      const driver = driverData.data.driver;
+                      setProfileData({
+                        name: driver.name || '',
+                        phoneNumber: driver.phoneNumber || '',
+                        address: driver.address || '',
+                        emergencyContact: driver.emergencyContact || '',
+                        experience: driver.experience || ''
+                      });
+                    }
+                  }}
+                  className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium flex items-center justify-center space-x-2"
+                >
+                  <Settings size={18} />
+                  <span>Reset</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       </div>
+    </div>
+  );
+
+  const renderNotifications = () => (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-gray-900 flex items-center">
+          <MessageSquare className="mr-3 text-blue-600" size={28} />
+          Send Notifications
+        </h2>
+        <div className="text-sm text-gray-500">
+          Send messages to students on your route
+        </div>
+      </div>
+
+      {driverData?.data?.driver?.assignedBus ? (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Notification Form */}
+          <div className="lg:col-span-2">
+            <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+              <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
+                <Send className="mr-3 text-blue-600" size={24} />
+                Compose Notification
+              </h3>
+
+              <form onSubmit={handleSendNotification} className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Notification Type
+                  </label>
+                  <select
+                    value={notificationType}
+                    onChange={(e) => setNotificationType(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  >
+                    <option value="info">Information</option>
+                    <option value="warning">Warning</option>
+                    <option value="success">Good News</option>
+                    <option value="error">Important Alert</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Message *
+                  </label>
+                  <textarea
+                    value={notificationMessage}
+                    onChange={(e) => setNotificationMessage(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
+                    placeholder="Type your message to students here..."
+                    rows={6}
+                    required
+                    maxLength={500}
+                  />
+                  <div className="text-right text-xs text-gray-500 mt-1">
+                    {notificationMessage.length}/500 characters
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={sendingNotification || !notificationMessage.trim()}
+                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-6 rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                >
+                  {sendingNotification ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                      <span>Sending...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send size={18} />
+                      <span>Send Notification</span>
+                    </>
+                  )}
+                </button>
+              </form>
+            </div>
+          </div>
+
+          {/* Info Panel */}
+          <div className="space-y-6">
+            {/* Route Info */}
+            <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+              <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                <Route className="mr-3 text-green-600" size={20} />
+                Your Route
+              </h3>
+              <div className="space-y-3">
+                <div className="p-3 bg-blue-50 rounded-lg">
+                  <p className="text-sm font-medium text-gray-700">Bus Number</p>
+                  <p className="text-lg font-bold text-blue-600">
+                    {driverData.data.driver.assignedBus.busNumber}
+                  </p>
+                </div>
+                {driverData.data.assignedRoute && (
+                  <div className="p-3 bg-green-50 rounded-lg">
+                    <p className="text-sm font-medium text-gray-700">Route</p>
+                    <p className="text-lg font-bold text-green-600">
+                      {driverData.data.assignedRoute.routeName}
+                    </p>
+                  </div>
+                )}
+                <div className="p-3 bg-purple-50 rounded-lg">
+                  <p className="text-sm font-medium text-gray-700">Students</p>
+                  <p className="text-lg font-bold text-purple-600">
+                    {driverData.data.stats.totalStudents} registered
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Notification Tips */}
+            <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+              <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                <AlertTriangle className="mr-3 text-yellow-600" size={20} />
+                Tips
+              </h3>
+              <div className="space-y-3 text-sm text-gray-600">
+                <div className="flex items-start space-x-2">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                  <p>Keep messages clear and concise</p>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                  <p>Use appropriate notification types</p>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <div className="w-2 h-2 bg-yellow-500 rounded-full mt-2 flex-shrink-0"></div>
+                  <p>Notify about delays or route changes</p>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <div className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0"></div>
+                  <p>Send emergency alerts when needed</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="bg-white rounded-2xl shadow-lg p-12 text-center border border-gray-100">
+          <div className="w-20 h-20 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <MessageSquare className="text-gray-400" size={40} />
+          </div>
+          <h3 className="text-xl font-bold text-gray-900 mb-3">No Bus Assigned</h3>
+          <p className="text-gray-600 mb-6">You need to have a bus assigned to send notifications to students.</p>
+          <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 inline-block">
+            <div className="flex items-center space-x-2">
+              <AlertTriangle className="text-yellow-600" size={18} />
+              <span className="text-yellow-800 font-medium text-sm">Contact admin for bus assignment</span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 
@@ -426,6 +968,7 @@ const DriverPanel = () => {
       case 'tracking': return renderTracking();
       case 'students': return renderStudents();
       case 'route': return renderRoute();
+      case 'notifications': return renderNotifications();
       case 'profile': return renderProfile();
       default: return renderDashboard();
     }
@@ -470,10 +1013,20 @@ const DriverPanel = () => {
           {user && (
             <div className="mb-3 p-3 bg-gray-50 rounded-lg border">
               <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center">
-                  <span className="text-white text-sm font-semibold">
-                    {user.name ? user.name.charAt(0).toUpperCase() : 'D'}
-                  </span>
+                <div className="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden">
+                  {driverData?.data?.driver?.profileImage?.url ? (
+                    <img
+                      src={driverData.data.driver.profileImage.url}
+                      alt="Driver Profile"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-green-600 rounded-full flex items-center justify-center">
+                      <span className="text-white text-sm font-semibold">
+                        {user.name ? user.name.charAt(0).toUpperCase() : 'D'}
+                      </span>
+                    </div>
+                  )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-900 truncate">{user.name || 'Driver'}</p>
@@ -504,6 +1057,7 @@ const DriverPanel = () => {
                   {activeTab === 'tracking' && 'Live GPS tracking and trip management'}
                   {activeTab === 'students' && 'Manage your assigned students'}
                   {activeTab === 'route' && 'View your assigned route details'}
+                  {activeTab === 'notifications' && 'Send notifications to your route students'}
                   {activeTab === 'profile' && 'Manage your profile settings'}
                 </p>
               </div>

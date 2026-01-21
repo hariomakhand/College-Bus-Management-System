@@ -11,10 +11,11 @@ import {
 import { 
   User, CheckCircle, Clock, AlertTriangle, Bus, MapPin, 
   Settings, FileText, Bell, Home, Route, Calendar, MessageSquare,
-  Phone, Mail, Search
+  Phone, Mail, Search, Navigation
 } from 'lucide-react';
 import ProfilePage from '../components/ProfilePage';
-import BusLocationTracker from '../components/BusLocationTracker';
+import StudentLocationMap from '../components/StudentLocationMap';
+import StudentNotifications from '../components/StudentNotifications';
 
 const StudentPanel = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -40,13 +41,16 @@ const StudentPanel = () => {
       setRoutesLoading(true);
       const response = await fetch('http://localhost:5001/api/student/routes');
       const data = await response.json();
+      console.log('Routes API Response:', data); // Debug log
       if (data.success) {
+        console.log('Routes with buses:', data.routes); // Debug log
         setRoutesData(data.routes);
         setRoutesError(null);
       } else {
         setRoutesError(data);
       }
     } catch (error) {
+      console.error('Routes fetch error:', error);
       setRoutesError(error);
     } finally {
       setRoutesLoading(false);
@@ -171,8 +175,16 @@ const StudentPanel = () => {
     <div className="space-y-8">
       <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl shadow-xl p-8 text-white">
         <div className="flex items-center space-x-4">
-          <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-            <User className="text-white" size={32} />
+          <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center overflow-hidden">
+            {student?.profileImage?.url ? (
+              <img 
+                src={student.profileImage.url} 
+                alt="Profile" 
+                className="w-full h-full object-cover rounded-full"
+              />
+            ) : (
+              <User className="text-white" size={32} />
+            )}
           </div>
           <div>
             <h1 className="text-3xl font-bold">Welcome back, {student?.name || 'Student'}!</h1>
@@ -186,7 +198,7 @@ const StudentPanel = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Bus Status</p>
-              <p className="text-2xl font-bold text-green-600">
+              <p className="text-2xl font-bold text-gray-900">
                 {student?.busRegistrationStatus === 'approved' ? 'Assigned' : 
                  student?.busRegistrationStatus === 'pending' ? 'Pending' : 'Not Applied'}
               </p>
@@ -199,7 +211,7 @@ const StudentPanel = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Route</p>
-              <p className="text-2xl font-bold text-blue-600">
+              <p className="text-2xl font-bold text-gray-900">
                 {student?.assignedRoute?.routeName || 'Not Assigned'}
               </p>
             </div>
@@ -211,7 +223,7 @@ const StudentPanel = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Pickup Time</p>
-              <p className="text-2xl font-bold text-purple-600">
+              <p className="text-2xl font-bold text-gray-900">
                 {student?.assignedRoute?.pickupTime || '8:00 AM'}
               </p>
             </div>
@@ -222,10 +234,12 @@ const StudentPanel = () => {
         <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-orange-500">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Registration</p>
-              <p className="text-lg font-bold text-orange-600">{statusBadge.text}</p>
+              <p className="text-sm font-medium text-gray-600">Live Tracking</p>
+              <p className="text-lg font-bold text-gray-900">
+                {student?.busRegistrationStatus === 'approved' ? 'Available' : 'Not Available'}
+              </p>
             </div>
-            <StatusIcon className="text-orange-500" size={32} />
+            <Navigation className="text-orange-500" size={32} />
           </div>
         </div>
       </div>
@@ -265,6 +279,26 @@ const StudentPanel = () => {
                 <span className="text-sm font-medium text-gray-600">Pickup Stop</span>
               </div>
               <p className="text-xl font-bold text-gray-900">{student?.preferredPickupStop || 'Main Gate'}</p>
+            </div>
+          </div>
+          
+          {/* Quick Bus Location Preview */}
+          <div className="mt-6 bg-gradient-to-r from-orange-50 to-yellow-50 p-4 rounded-xl border border-orange-200">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                <Navigation className="mr-2 text-orange-600" size={20} />
+                Live Bus Location
+              </h3>
+              <button 
+                onClick={() => setActiveTab('tracking')}
+                className="text-sm text-orange-600 hover:text-orange-700 font-medium"
+              >
+                View Full Map →
+              </button>
+            </div>
+            <div className="text-center py-4 text-gray-500">
+              <MapPin size={32} className="mx-auto mb-2 opacity-50" />
+              <p className="text-sm">Click "Track Bus Live" to view real-time location</p>
             </div>
           </div>
           
@@ -376,14 +410,150 @@ const StudentPanel = () => {
                       <span className="text-gray-600">End Point:</span>
                       <span className="font-medium text-gray-900">{registeredRoute.endPoint}</span>
                     </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Distance:</span>
+                      <span className="font-medium text-gray-900">{registeredRoute.distance || 15} km</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Duration:</span>
+                      <span className="font-medium text-gray-900">{registeredRoute.estimatedTime || 30} mins</span>
+                    </div>
                     {student?.preferredPickupStop && (
-                      <div className="flex justify-between">
+                      <div className="flex justify-between border-t pt-3 mt-3">
                         <span className="text-gray-600">Your Pickup Stop:</span>
                         <span className="font-medium text-green-700">{student.preferredPickupStop}</span>
                       </div>
                     )}
                   </div>
                 </div>
+
+                {/* Assigned Bus & Driver Info */}
+                {student?.busRegistrationStatus === 'approved' && (student?.assignedBus || student?.assignedDriver) && (
+                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-xl">
+                    <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                      <Bus className="mr-2 text-purple-600" size={20} />
+                      Your Assigned Bus & Driver
+                    </h4>
+                    <div className="space-y-4">
+                      {student?.assignedBus && (
+                        <div className="bg-white p-4 rounded-lg border">
+                          <div className="flex items-center space-x-3 mb-2">
+                            <Bus className="text-blue-600" size={16} />
+                            <span className="font-semibold text-gray-700">Bus Details</span>
+                          </div>
+                          <div className="space-y-1 text-sm">
+                            <p><span className="text-gray-600">Bus Number:</span> <span className="font-bold text-gray-900">{student.assignedBus.busNumber}</span></p>
+                            <p><span className="text-gray-600">Model:</span> <span className="font-medium text-gray-900">{student.assignedBus.model}</span></p>
+                            <p><span className="text-gray-600">Capacity:</span> <span className="font-medium text-gray-900">{student.assignedBus.capacity} seats</span></p>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {student?.assignedDriver && (
+                        <div className="bg-white p-4 rounded-lg border">
+                          <div className="flex items-center space-x-3 mb-2">
+                            <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
+                              {student.assignedDriver.profileImage?.url ? (
+                                <img 
+                                  src={student.assignedDriver.profileImage.url} 
+                                  alt={student.assignedDriver.name} 
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <User className="text-gray-400" size={16} />
+                              )}
+                            </div>
+                            <span className="font-semibold text-gray-700">Driver Details</span>
+                          </div>
+                          <div className="space-y-1 text-sm">
+                            <p><span className="text-gray-600">Name:</span> <span className="font-bold text-gray-900">{student.assignedDriver.name}</span></p>
+                            <p><span className="text-gray-600">Phone:</span> <span className="font-medium text-blue-600">{student.assignedDriver.phone}</span></p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              <div className="space-y-6">
+                {/* Bus Stops */}
+                {registeredRoute.stops && (
+                  <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-xl">
+                    <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                      <Bus className="mr-2 text-green-600" size={20} />
+                      All Bus Stops
+                    </h4>
+                    <div className="space-y-2">
+                      {registeredRoute.stops.split(',').map((stop, index) => (
+                        <div 
+                          key={index} 
+                          className={`p-3 rounded-lg border-l-4 ${
+                            stop.trim().toLowerCase() === student?.preferredPickupStop?.toLowerCase()
+                              ? 'bg-yellow-100 border-yellow-500 font-semibold'
+                              : 'bg-white border-gray-300'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm">{stop.trim()}</span>
+                            {stop.trim().toLowerCase() === student?.preferredPickupStop?.toLowerCase() && (
+                              <span className="text-xs bg-yellow-500 text-white px-2 py-1 rounded-full">
+                                Your Stop
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Available Buses on Route */}
+                {registeredRoute.buses && registeredRoute.buses.length > 0 && (
+                  <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-6 rounded-xl">
+                    <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                      <Bus className="mr-2 text-orange-600" size={20} />
+                      All Buses on This Route
+                    </h4>
+                    <div className="space-y-3">
+                      {registeredRoute.buses.map((bus, busIndex) => (
+                        <div key={busIndex} className="bg-white p-4 rounded-lg border">
+                          <div className="flex justify-between items-start mb-2">
+                            <div>
+                              <p className="font-bold text-gray-900">{bus.busNumber}</p>
+                              <p className="text-xs text-gray-600">{bus.model} • {bus.capacity} seats</p>
+                            </div>
+                            {student?.assignedBus?.busNumber === bus.busNumber && (
+                              <span className="text-xs bg-green-500 text-white px-2 py-1 rounded-full">
+                                Your Bus
+                              </span>
+                            )}
+                          </div>
+                          {bus.driver && (
+                            <div className="border-t pt-2 mt-2">
+                              <div className="flex items-center space-x-2 mb-1">
+                                <div className="w-4 h-4 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
+                                  {bus.driver.profileImage?.url ? (
+                                    <img 
+                                      src={bus.driver.profileImage.url} 
+                                      alt={bus.driver.name} 
+                                      className="w-full h-full object-cover"
+                                    />
+                                  ) : (
+                                    <User className="text-blue-600" size={8} />
+                                  )}
+                                </div>
+                                <span className="text-xs font-medium text-gray-600">Driver</span>
+                              </div>
+                              <p className="text-sm font-medium text-gray-900">{bus.driver.name}</p>
+                              <p className="text-xs text-gray-600">{bus.driver.phone}</p>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -402,27 +572,110 @@ const StudentPanel = () => {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredRoutes.map((route) => (
-                  <div key={route._id} className="bg-white rounded-2xl shadow-xl p-6 hover:shadow-2xl transition-shadow">
+                {filteredRoutes.map((route) => {
+                  console.log('Rendering route:', route); // Debug log
+                  return (
+                  <div key={route._id} className="bg-white rounded-2xl shadow-xl p-6 hover:shadow-2xl transition-shadow border border-gray-100">
                     <div className="flex justify-between items-start mb-4">
                       <div>
-                        <h3 className="text-lg font-bold text-gray-900">{route.routeName}</h3>
-                        <p className="text-sm text-gray-600">{route.routeNumber}</p>
+                        <h3 className="text-xl font-bold text-gray-900">{route.routeName}</h3>
+                        <p className="text-sm text-blue-600 font-medium">{route.routeNumber}</p>
                       </div>
-                      <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
-                        Active
+                      <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-bold">
+                        ✓ Active
                       </span>
                     </div>
                     
-                    <div className="space-y-3 mb-6">
-                      <div className="flex items-center space-x-2">
-                        <MapPin className="text-blue-600" size={16} />
-                        <span className="text-sm text-gray-700">{route.startPoint} → {route.endPoint}</span>
+                    <div className="space-y-4 mb-6">
+                      {/* Route Path */}
+                      <div className="bg-blue-50 p-4 rounded-lg">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <MapPin className="text-blue-600" size={16} />
+                          <span className="text-sm font-semibold text-gray-700">Route Path</span>
+                        </div>
+                        <div className="text-sm text-gray-800">
+                          <span className="font-medium text-blue-700">{route.startPoint}</span>
+                          <span className="mx-2 text-gray-400">→</span>
+                          <span className="font-medium text-green-700">{route.endPoint}</span>
+                        </div>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <Clock className="text-green-600" size={16} />
-                        <span className="text-sm text-gray-700">{route.estimatedTime} mins</span>
+
+                      {/* Route Details */}
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="bg-gray-50 p-3 rounded-lg">
+                          <div className="flex items-center space-x-2">
+                            <Clock className="text-green-600" size={14} />
+                            <span className="text-xs font-medium text-gray-600">Duration</span>
+                          </div>
+                          <p className="text-sm font-bold text-gray-900 mt-1">{route.estimatedTime || 30} mins</p>
+                        </div>
+                        <div className="bg-gray-50 p-3 rounded-lg">
+                          <div className="flex items-center space-x-2">
+                            <MapPin className="text-purple-600" size={14} />
+                            <span className="text-xs font-medium text-gray-600">Distance</span>
+                          </div>
+                          <p className="text-sm font-bold text-gray-900 mt-1">{route.distance || 15} km</p>
+                        </div>
                       </div>
+
+                      {/* Bus Stops */}
+                      {route.stops && (
+                        <div className="bg-yellow-50 p-4 rounded-lg">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <Bus className="text-yellow-600" size={16} />
+                            <span className="text-sm font-semibold text-gray-700">Bus Stops</span>
+                          </div>
+                          <div className="text-xs text-gray-700 leading-relaxed">
+                            {route.stops.split(',').map((stop, index) => (
+                              <span key={index} className="inline-block bg-white px-2 py-1 rounded mr-1 mb-1 border">
+                                {stop.trim()}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Bus and Driver Info */}
+                      {route.buses && route.buses.length > 0 && (
+                        <div className="bg-purple-50 p-4 rounded-lg">
+                          <div className="flex items-center space-x-2 mb-3">
+                            <Bus className="text-purple-600" size={16} />
+                            <span className="text-sm font-semibold text-gray-700">Available Buses</span>
+                          </div>
+                          <div className="space-y-3">
+                            {route.buses.map((bus, busIndex) => (
+                              <div key={busIndex} className="bg-white p-3 rounded-lg border">
+                                <div className="flex justify-between items-start mb-2">
+                                  <div>
+                                    <p className="font-bold text-gray-900">{bus.busNumber}</p>
+                                    <p className="text-xs text-gray-600">{bus.model} • {bus.capacity} seats</p>
+                                  </div>
+                                </div>
+                                {bus.driver && (
+                                  <div className="border-t pt-2 mt-2">
+                                    <div className="flex items-center space-x-2 mb-1">
+                                      <div className="w-4 h-4 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
+                                        {bus.driver.profileImage?.url ? (
+                                          <img 
+                                            src={bus.driver.profileImage.url} 
+                                            alt={bus.driver.name} 
+                                            className="w-full h-full object-cover"
+                                          />
+                                        ) : (
+                                          <User className="text-blue-600" size={8} />
+                                        )}
+                                      </div>
+                                      <span className="text-xs font-medium text-gray-600">Driver</span>
+                                    </div>
+                                    <p className="text-sm font-medium text-gray-900">{bus.driver.name}</p>
+                                    <p className="text-xs text-gray-600">{bus.driver.phone}</p>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     <button
@@ -434,10 +687,10 @@ const StudentPanel = () => {
                         handleBusApplication(route._id);
                       }}
                       disabled={applyLoading || !student?.isApproved}
-                      className={`w-full py-2 px-4 rounded-lg transition-colors text-sm ${
+                      className={`w-full py-3 px-4 rounded-lg transition-colors font-medium ${
                         !student?.isApproved 
                           ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
-                          : 'bg-blue-600 text-white hover:bg-blue-700'
+                          : 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl'
                       } disabled:opacity-50`}
                     >
                       {!student?.isApproved 
@@ -448,7 +701,8 @@ const StudentPanel = () => {
                       }
                     </button>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </>
@@ -457,31 +711,107 @@ const StudentPanel = () => {
     );
   };
 
-  const renderTracking = () => (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-gray-900">Live Bus Tracking</h2>
-      
-      {student?.busRegistrationStatus === 'approved' && student?.assignedBus?.busNumber ? (
-        <BusLocationTracker busNumber={student.assignedBus.busNumber} />
-      ) : (
-        <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
-          <MapPin size={64} className="mx-auto mb-4 text-gray-400" />
-          <h3 className="text-lg font-bold text-gray-900 mb-2">No Bus Assigned</h3>
-          <p className="text-gray-600 mb-4">
-            {student?.busRegistrationStatus === 'pending' 
-              ? 'Your bus application is pending approval. Live tracking will be available once approved.' 
-              : 'Please apply for a bus route to access live tracking.'}
-          </p>
-          <button 
-            onClick={() => setActiveTab('routes')}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            {student?.busRegistrationStatus === 'pending' ? 'View Application Status' : 'Apply for Bus Route'}
-          </button>
+  const renderTracking = () => {
+    // Get bus number from assigned bus or assigned driver's bus
+    const busNumber = student?.assignedBus?.busNumber || student?.assignedDriver?.assignedBus?.busNumber;
+    
+    console.log('Student tracking debug:', {
+      studentId: student?._id,
+      busRegistrationStatus: student?.busRegistrationStatus,
+      assignedBus: student?.assignedBus,
+      assignedDriver: student?.assignedDriver,
+      finalBusNumber: busNumber
+    });
+    
+    return (
+      <div className="space-y-6">
+        <h2 className="text-2xl font-bold text-gray-900">Live Bus Tracking</h2>
+        
+        {/* Debug Info */}
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <h3 className="font-semibold text-yellow-800 mb-2">Debug Info:</h3>
+          <p className="text-sm text-yellow-700">Status: {student?.busRegistrationStatus || 'Not set'}</p>
+          <p className="text-sm text-yellow-700">Bus Number: {busNumber || 'Not found'}</p>
+          <p className="text-sm text-yellow-700">Student ID: {student?._id || 'Not found'}</p>
         </div>
-      )}
-    </div>
-  );
+        
+        {student?.busRegistrationStatus === 'approved' && busNumber ? (
+          <div className="space-y-4">
+            {/* Driver & Bus Info */}
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <User className="mr-2 text-blue-600" size={20} />
+                Your Assigned Driver & Bus
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {student?.assignedDriver && (
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <div className="flex items-center space-x-3 mb-2">
+                      <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
+                        {student.assignedDriver.profileImage?.url ? (
+                          <img 
+                            src={student.assignedDriver.profileImage.url} 
+                            alt={student.assignedDriver.name} 
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <User className="text-gray-400" size={20} />
+                        )}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-900">{student.assignedDriver.name}</p>
+                        <p className="text-sm text-gray-600">Driver</p>
+                      </div>
+                    </div>
+                    <div className="space-y-1 text-sm">
+                      <p><span className="text-gray-600">Phone:</span> <span className="font-medium text-blue-600">{student.assignedDriver.phone}</span></p>
+                      <p><span className="text-gray-600">License:</span> <span className="font-medium text-gray-900">{student.assignedDriver.licenseNumber}</span></p>
+                    </div>
+                  </div>
+                )}
+                
+                {student?.assignedBus && (
+                  <div className="bg-green-50 p-4 rounded-lg">
+                    <div className="flex items-center space-x-3 mb-2">
+                      <Bus className="text-green-600" size={20} />
+                      <div>
+                        <p className="font-semibold text-gray-900">{student.assignedBus.busNumber}</p>
+                        <p className="text-sm text-gray-600">Your Bus</p>
+                      </div>
+                    </div>
+                    <div className="space-y-1 text-sm">
+                      <p><span className="text-gray-600">Model:</span> <span className="font-medium text-gray-900">{student.assignedBus.model}</span></p>
+                      <p><span className="text-gray-600">Capacity:</span> <span className="font-medium text-gray-900">{student.assignedBus.capacity} seats</span></p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            {/* Live Tracking */}
+            <StudentLocationMap busNumber={busNumber} />
+          </div>
+        ) : (
+          <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
+            <MapPin size={64} className="mx-auto mb-4 text-gray-400" />
+            <h3 className="text-lg font-bold text-gray-900 mb-2">No Bus Assigned</h3>
+            <p className="text-gray-600 mb-4">
+              {student?.busRegistrationStatus === 'pending' 
+                ? 'Your bus application is pending approval. Live tracking will be available once approved.' 
+                : 'Please apply for a bus route to access live tracking.'}
+            </p>
+            <button 
+              onClick={() => setActiveTab('routes')}
+              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              {student?.busRegistrationStatus === 'pending' ? 'View Application Status' : 'Apply for Bus Route'}
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   const renderSchedule = () => (
     <div className="space-y-6">
@@ -500,6 +830,12 @@ const StudentPanel = () => {
       userData={student}
       onUpdateProfile={async (formData) => {
         try {
+          // If it's just a refresh request (after image upload)
+          if (formData.refreshOnly) {
+            refetchDashboard();
+            return;
+          }
+          
           await updateProfile(formData).unwrap();
           alert('Profile updated successfully! Your registration will be reviewed by admin.');
           refetchDashboard();
@@ -624,10 +960,18 @@ const StudentPanel = () => {
           {user && (
             <div className="mb-3 p-3 bg-gray-50 rounded-lg border">
               <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                  <span className="text-white text-sm font-semibold">
-                    {user.name ? user.name.charAt(0).toUpperCase() : 'S'}
-                  </span>
+                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center overflow-hidden">
+                  {student?.profileImage?.url ? (
+                    <img 
+                      src={student.profileImage.url} 
+                      alt="Profile" 
+                      className="w-full h-full object-cover rounded-full"
+                    />
+                  ) : (
+                    <span className="text-white text-sm font-semibold">
+                      {user.name ? user.name.charAt(0).toUpperCase() : 'S'}
+                    </span>
+                  )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-900 truncate">
@@ -666,20 +1010,7 @@ const StudentPanel = () => {
                 </p>
               </div>
               <div className="flex items-center space-x-4">
-                <button 
-                  onClick={() => {
-                    setShowAnnouncementModal(true);
-                    setNotificationsViewed(true);
-                  }}
-                  className="p-2 text-gray-600 hover:text-gray-900 relative"
-                >
-                  <Bell size={20} />
-                  {recentAnnouncements.length > 0 && !notificationsViewed && (
-                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
-                      {recentAnnouncements.length}
-                    </span>
-                  )}
-                </button>
+                <StudentNotifications />
               </div>
             </div>
           </div>

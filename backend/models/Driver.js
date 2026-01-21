@@ -32,6 +32,22 @@ const DriverSchema = new mongoose.Schema({
     unique: true,
     sparse: true
   },
+  licenseDocument: {
+    url: String,
+    publicId: String,
+    uploadedAt: {
+      type: Date,
+      default: Date.now
+    }
+  },
+  profileImage: {
+    url: String,
+    publicId: String,
+    uploadedAt: {
+      type: Date,
+      default: Date.now
+    }
+  },
   phoneNumber: {
     type: String
   },

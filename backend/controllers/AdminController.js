@@ -226,10 +226,48 @@ const handleBusRequest = async (req, res) => {
       student.busId = busId;
       student.approvalDate = new Date();
       student.rejectionReason = null;
+      
+      // Get bus and route details for notification
+      const bus = await Bus.findById(busId).populate('routeId', 'routeName');
+      
+      // Send approval notification
+      await createNotification(
+        student._id,
+        'Bus Application Approved',
+        `Congratulations! Your bus application has been approved. You are now assigned to bus ${bus.busNumber}${bus.routeId ? ` on route ${bus.routeId.routeName}` : ''}.`,
+        'success'
+      );
+      
+      // Emit real-time notification
+      if (global.io) {
+        global.io.to(`student-${student._id}`).emit('busRequestApproved', {
+          message: `Your bus application has been approved`,
+          busNumber: bus.busNumber,
+          routeName: bus.routeId?.routeName,
+          timestamp: new Date()
+        });
+      }
     } else if (action === 'reject') {
       student.busRegistrationStatus = 'rejected';
       student.rejectionDate = new Date();
       student.rejectionReason = reason;
+      
+      // Send rejection notification
+      await createNotification(
+        student._id,
+        'Bus Application Rejected',
+        `Your bus application has been rejected. Reason: ${reason || 'No reason provided'}. You can apply again after addressing the concerns.`,
+        'error'
+      );
+      
+      // Emit real-time notification
+      if (global.io) {
+        global.io.to(`student-${student._id}`).emit('busRequestRejected', {
+          message: `Your bus application has been rejected`,
+          reason: reason || 'No reason provided',
+          timestamp: new Date()
+        });
+      }
     }
 
     await student.save({ validateBeforeSave: false });
@@ -473,9 +511,19 @@ const addRoute = async (req, res) => {
       });
     }
 
-    // Generate sequential route number starting from RT001
-    const routeCount = await Route.countDocuments({ isDeleted: false });
-    const routeNumber = `RT${String(routeCount + 1).padStart(3, '0')}`;
+    // Generate unique route number (check both active and deleted routes)
+    let routeNumber;
+    let counter = 1;
+    
+    do {
+      routeNumber = `RT${String(counter).padStart(3, '0')}`;
+      const existingRoute = await Route.findOne({ routeNumber });
+      
+      if (!existingRoute) {
+        break;
+      }
+      counter++;
+    } while (counter <= 999);
     
     const route = new Route({
       routeName,
@@ -518,7 +566,9 @@ const addDriver = async (req, res) => {
       dateOfBirth,
       address, 
       emergencyContact,
-      experience 
+      experience,
+      licenseDocument,
+      profileImage
     } = req.body;
 
     const existingDriver = await Driver.findOne({
@@ -544,6 +594,14 @@ const addDriver = async (req, res) => {
       address,
       emergencyContact,
       experience,
+      licenseDocument: licenseDocument ? {
+        url: licenseDocument.url,
+        publicId: licenseDocument.publicId
+      } : undefined,
+      profileImage: profileImage ? {
+        url: profileImage.url,
+        publicId: profileImage.publicId
+      } : undefined,
       role: "driver",
       isVerified: true
     });
@@ -597,7 +655,7 @@ const deleteBus = async (req, res) => {
     const { id } = req.params;
 
     // Check if bus exists
-    const bus = await Bus.findById(id);
+    const bus = await Bus.findById(id).populate('driverId', 'name').populate('routeId', 'routeName');
     if (!bus) {
       return res.status(404).json({
         success: false,
@@ -605,16 +663,34 @@ const deleteBus = async (req, res) => {
       });
     }
 
-    // Check how many students are assigned to this bus
-    const assignedStudents = await Student.countDocuments({ busId: id, isDeleted: false });
+    // Get all students assigned to this bus
+    const assignedStudents = await Student.find({ busId: id, isDeleted: false });
     
-    // Remove bus assignment from all students
-    if (assignedStudents > 0) {
+    console.log(`Bus deletion - Found ${assignedStudents.length} students assigned to bus ${bus.busNumber}`);
+    assignedStudents.forEach(student => {
+      console.log(`- Student: ${student.name} (${student._id})`);
+    });
+    
+    // Send notifications to affected students
+    for (const student of assignedStudents) {
+      await createNotification(
+        student._id,
+        'Bus Service Discontinued',
+        `Your assigned bus ${bus.busNumber} has been discontinued. Please contact admin for new bus assignment.`,
+        'warning'
+      );
+    }
+
+    // Remove bus assignment from all students and reset their status
+    if (assignedStudents.length > 0) {
       await Student.updateMany(
         { busId: id },
         { 
           busId: null,
-          busRegistrationStatus: 'pending'
+          busRegistrationStatus: 'not_registered',
+          appliedRouteId: null,
+          preferredPickupStop: null,
+          applicationReason: null
         }
       );
     }
@@ -627,10 +703,25 @@ const deleteBus = async (req, res) => {
       routeId: null
     });
 
+    // Emit real-time notification to students
+    if (global.io) {
+      console.log(`Emitting bus deletion notifications to ${assignedStudents.length} students`);
+      assignedStudents.forEach(student => {
+        console.log(`Emitting to student room: student-${student._id}`);
+        global.io.to(`student-${student._id}`).emit('busDeleted', {
+          message: `Your bus ${bus.busNumber} has been discontinued`,
+          busNumber: bus.busNumber,
+          timestamp: new Date()
+        });
+      });
+    } else {
+      console.log('Socket.io not available for real-time notifications');
+    }
+
     res.json({
       success: true,
-      message: assignedStudents > 0 
-        ? `Bus deleted successfully. ${assignedStudents} students have been unassigned and their status reset to pending.`
+      message: assignedStudents.length > 0 
+        ? `Bus deleted successfully. ${assignedStudents.length} students have been notified and their assignments cleared.`
         : "Bus deleted successfully"
     });
   } catch (error) {
@@ -643,16 +734,73 @@ const deleteRoute = async (req, res) => {
   try {
     const { id } = req.params;
 
+    // Get route details before deletion
+    const route = await Route.findById(id);
+    if (!route) {
+      return res.status(404).json({
+        success: false,
+        message: "Route not found"
+      });
+    }
+
+    // Find all buses using this route
+    const affectedBuses = await Bus.find({ routeId: id, isDeleted: false }).populate('driverId', 'name');
+    
+    // Get all students on buses using this route
+    const busIds = affectedBuses.map(bus => bus._id);
+    const affectedStudents = await Student.find({ 
+      $or: [
+        { busId: { $in: busIds } },
+        { appliedRouteId: id }
+      ],
+      isDeleted: false 
+    });
+
+    // Send notifications to affected students
+    for (const student of affectedStudents) {
+      const studentBus = affectedBuses.find(bus => bus._id.toString() === student.busId?.toString());
+      await createNotification(
+        student._id,
+        'Route Discontinued',
+        `Route "${route.routeName}" has been discontinued. ${studentBus ? `Your bus ${studentBus.busNumber} route will be updated soon.` : 'Please apply for a new route.'}`,
+        'warning'
+      );
+    }
+
+    // Clear route assignments from students
+    await Student.updateMany(
+      { appliedRouteId: id },
+      { 
+        appliedRouteId: null,
+        busRegistrationStatus: 'not_registered',
+        preferredPickupStop: null,
+        applicationReason: null
+      }
+    );
+
+    // Remove route from all buses
     await Bus.updateMany({ routeId: id }, { routeId: null });
 
+    // Mark route as deleted
     await Route.findByIdAndUpdate(id, {
       isDeleted: true,
       deletedAt: new Date()
     });
 
+    // Emit real-time notifications
+    if (global.io) {
+      affectedStudents.forEach(student => {
+        global.io.to(`student-${student._id}`).emit('routeDeleted', {
+          message: `Route "${route.routeName}" has been discontinued`,
+          routeName: route.routeName,
+          timestamp: new Date()
+        });
+      });
+    }
+
     res.json({
       success: true,
-      message: "Route deleted successfully"
+      message: `Route deleted successfully. ${affectedStudents.length} students have been notified and their route assignments cleared.`
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -684,10 +832,50 @@ const updateBusStatus = async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
 
-    const bus = await Bus.findById(id);
+    const bus = await Bus.findById(id).populate('driverId', 'name').populate('routeId', 'routeName');
+    if (!bus) {
+      return res.status(404).json({
+        success: false,
+        message: "Bus not found"
+      });
+    }
+
+    // Get students affected by this status change
+    const affectedStudents = await Student.find({ busId: id, isDeleted: false });
+    
+    // Send notifications based on status change
+    let notificationMessage = '';
+    let notificationType = 'info';
+    
+    switch (status) {
+      case 'maintenance':
+        notificationMessage = `Your bus ${bus.busNumber} is under maintenance. Service may be temporarily affected.`;
+        notificationType = 'warning';
+        break;
+      case 'inactive':
+        notificationMessage = `Your bus ${bus.busNumber} service has been temporarily suspended. Please contact admin.`;
+        notificationType = 'error';
+        break;
+      case 'active':
+        notificationMessage = `Your bus ${bus.busNumber} is now active and ready for service.`;
+        notificationType = 'success';
+        break;
+    }
+
+    // Send notifications to affected students
+    for (const student of affectedStudents) {
+      await createNotification(
+        student._id,
+        'Bus Status Update',
+        notificationMessage,
+        notificationType
+      );
+    }
+
+    // Update bus status
     await Bus.findByIdAndUpdate(id, { status });
 
-    // Create notification
+    // Create notification for admin
     await createNotification(
       req.user.id,
       'Bus Status Updated',
@@ -695,9 +883,21 @@ const updateBusStatus = async (req, res) => {
       status === 'maintenance' ? 'warning' : 'info'
     );
 
+    // Emit real-time notifications
+    if (global.io) {
+      affectedStudents.forEach(student => {
+        global.io.to(`student-${student._id}`).emit('busStatusChanged', {
+          message: notificationMessage,
+          busNumber: bus.busNumber,
+          status: status,
+          timestamp: new Date()
+        });
+      });
+    }
+
     res.json({
       success: true,
-      message: "Bus status updated successfully"
+      message: `Bus status updated successfully. ${affectedStudents.length} students have been notified.`
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -710,9 +910,33 @@ const assignBusToDriver = async (req, res) => {
     const { driverId, busId, routeId, action } = req.body;
 
     if (action === 'unassign') {
-      const bus = await Bus.findOne({ driverId, isDeleted: false });
+      const bus = await Bus.findOne({ driverId, isDeleted: false }).populate('driverId', 'name');
       if (bus) {
+        // Get students affected by this change
+        const affectedStudents = await Student.find({ busId: bus._id, isDeleted: false });
+        
+        // Notify students about driver change
+        for (const student of affectedStudents) {
+          await createNotification(
+            student._id,
+            'Driver Unassigned',
+            `Driver has been unassigned from your bus ${bus.busNumber}. A new driver will be assigned soon.`,
+            'info'
+          );
+        }
+
         await Bus.findByIdAndUpdate(bus._id, { driverId: null, routeId: null });
+
+        // Emit real-time notification
+        if (global.io) {
+          affectedStudents.forEach(student => {
+            global.io.to(`student-${student._id}`).emit('driverUnassigned', {
+              message: `Driver unassigned from bus ${bus.busNumber}`,
+              busNumber: bus.busNumber,
+              timestamp: new Date()
+            });
+          });
+        }
       }
 
       return res.json({
@@ -739,19 +963,46 @@ const assignBusToDriver = async (req, res) => {
       });
     }
 
+    // Get students who will be affected by this assignment
+    const affectedStudents = await Student.find({ busId: busId, isDeleted: false });
+    
     // Assign bus to driver
     await Bus.findByIdAndUpdate(busId, { driverId, routeId });
     
     const driver = await Driver.findById(driverId);
     const bus = await Bus.findById(busId);
+    const route = routeId ? await Route.findById(routeId) : null;
 
-    // Create notification
+    // Notify affected students about new driver assignment
+    for (const student of affectedStudents) {
+      await createNotification(
+        student._id,
+        'New Driver Assigned',
+        `${driver.name} has been assigned as your new bus driver for ${bus.busNumber}${route ? ` on route ${route.routeName}` : ''}.`,
+        'success'
+      );
+    }
+
+    // Create notification for admin
     await createNotification(
       req.user.id,
       'Bus Assignment',
       `Bus ${bus.busNumber} has been assigned to driver ${driver.name}`,
       'info'
     );
+
+    // Emit real-time notifications
+    if (global.io) {
+      affectedStudents.forEach(student => {
+        global.io.to(`student-${student._id}`).emit('driverAssigned', {
+          message: `New driver ${driver.name} assigned to your bus`,
+          driverName: driver.name,
+          busNumber: bus.busNumber,
+          routeName: route?.routeName,
+          timestamp: new Date()
+        });
+      });
+    }
 
     res.json({
       success: true,
@@ -803,9 +1054,26 @@ const getDriverById = async (req, res) => {
       });
     }
 
+    // Add assigned bus info
+    const assignedBus = await Bus.findOne({ 
+      driverId: driver._id, 
+      isDeleted: false 
+    }).populate('routeId', 'routeName routeNumber startPoint endPoint');
+    
+    const driverWithBusInfo = {
+      ...driver.toObject(),
+      assignedBus: assignedBus ? {
+        _id: assignedBus._id,
+        busNumber: assignedBus.busNumber,
+        model: assignedBus.model,
+        capacity: assignedBus.capacity,
+        route: assignedBus.routeId
+      } : null
+    };
+
     res.json({
       success: true,
-      driver
+      driver: driverWithBusInfo
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -867,6 +1135,23 @@ const updateDriver = async (req, res) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
+
+    // Handle profile image and license document updates
+    if (updateData.profileImage) {
+      updateData.profileImage = {
+        url: updateData.profileImage.url,
+        publicId: updateData.profileImage.publicId,
+        uploadedAt: new Date()
+      };
+    }
+
+    if (updateData.licenseDocument) {
+      updateData.licenseDocument = {
+        url: updateData.licenseDocument.url,
+        publicId: updateData.licenseDocument.publicId,
+        uploadedAt: new Date()
+      };
+    }
 
     const driver = await Driver.findOneAndUpdate(
       { _id: id, isDeleted: false },

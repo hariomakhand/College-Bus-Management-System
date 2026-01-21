@@ -369,9 +369,9 @@ const DriversTable = ({
                             setShowDetailModal(true);
                           }}
                           style={{
-                            backgroundColor: 'transparent',
-                            color: '#6b7280',
-                            border: '1px solid #d1d5db',
+                            backgroundColor: '#3b82f6',
+                            color: 'white',
+                            border: 'none',
                             padding: '6px 10px',
                             borderRadius: '6px',
                             fontSize: '11px',
@@ -384,15 +384,13 @@ const DriversTable = ({
                             minWidth: '60px'
                           }}
                           onMouseOver={(e) => {
-                            e.target.style.backgroundColor = '#f9fafb';
-                            e.target.style.borderColor = '#9ca3af';
+                            e.target.style.backgroundColor = '#2563eb';
                           }}
                           onMouseOut={(e) => {
-                            e.target.style.backgroundColor = 'transparent';
-                            e.target.style.borderColor = '#d1d5db';
+                            e.target.style.backgroundColor = '#3b82f6';
                           }}
                         >
-                          Details
+                          📄 Details
                         </button>
                       </div>
                     </td>

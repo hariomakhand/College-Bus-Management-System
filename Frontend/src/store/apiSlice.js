@@ -323,6 +323,34 @@ export const apiSlice = createApi({
       }),
       invalidatesTags: ['User'],
     }),
+    updateDriverLocation: builder.mutation({
+      query: (locationData) => ({
+        url: '/driver/update-location',
+        method: 'POST',
+        body: locationData,
+      }),
+    }),
+    startTrip: builder.mutation({
+      query: (tripData) => ({
+        url: '/driver/start-trip',
+        method: 'POST',
+        body: tripData,
+      }),
+    }),
+    endTrip: builder.mutation({
+      query: (tripData) => ({
+        url: '/driver/end-trip',
+        method: 'POST',
+        body: tripData,
+      }),
+    }),
+    sendDriverNotification: builder.mutation({
+      query: (notificationData) => ({
+        url: '/driver/send-notification',
+        method: 'POST',
+        body: notificationData,
+      }),
+    }),
   }),
 });
 
@@ -335,16 +363,10 @@ export const {
   useGetBusesQuery,
   useAddBusMutation,
   useDeleteBusMutation,
-  useUpdateBusStatusMutation,
-  useUpdateBusMutation,
   useGetDriversQuery,
   useAddDriverMutation,
   useDeleteDriverMutation,
   useUpdateDriverMutation,
-  useAssignBusToDriverMutation,
-  useUnassignBusFromDriverMutation,
-  useAssignRouteToDriverMutation,
-  useUnassignRouteFromDriverMutation,
   useGetRoutesQuery,
   useAddRouteMutation,
   useDeleteRouteMutation,
@@ -358,6 +380,12 @@ export const {
   useSendAnnouncementMutation,
   useAddStudentMutation,
   useDeleteStudentMutation,
+  useUpdateBusStatusMutation,
+  useUpdateBusMutation,
+  useAssignBusToDriverMutation,
+  useUnassignBusFromDriverMutation,
+  useAssignRouteToDriverMutation,
+  useUnassignRouteFromDriverMutation,
   useGetNotificationsQuery,
   useMarkNotificationAsReadMutation,
   useMarkAllNotificationsAsReadMutation,
@@ -373,4 +401,8 @@ export const {
   useGetStudentAnnouncementsQuery,
   useGetDriverDashboardQuery,
   useUpdateDriverProfileMutation,
+  useUpdateDriverLocationMutation,
+  useStartTripMutation,
+  useEndTripMutation,
+  useSendDriverNotificationMutation,
 } = apiSlice;

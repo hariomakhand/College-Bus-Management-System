@@ -25,7 +25,7 @@ const busIcon = new L.Icon({
   popupAnchor: [0, -32]
 });
 
-const BusLocationTracker = ({ busNumber }) => {
+const BusLocationTracker = ({ busNumber, compact = false }) => {
   const [busLocation, setBusLocation] = useState(null);
   const [connectionStatus, setConnectionStatus] = useState('connecting');
   const [lastUpdate, setLastUpdate] = useState(null);
@@ -35,7 +35,10 @@ const BusLocationTracker = ({ busNumber }) => {
   const defaultCenter = [22.9676, 76.0534];
 
   useEffect(() => {
-    if (!busNumber) return;
+    if (!busNumber) {
+      console.log('BusLocationTracker: No bus number provided');
+      return;
+    }
 
     // Fetch initial location
     fetchBusLocation();
@@ -49,7 +52,7 @@ const BusLocationTracker = ({ busNumber }) => {
     newSocket.on('connect', () => {
       console.log('Connected to tracking server');
       setConnectionStatus('connected');
-      newSocket.emit('join-student', busNumber);
+      newSocket.emit('join-bus-tracking', busNumber);
     });
 
     newSocket.on('disconnect', () => {
@@ -89,6 +92,12 @@ const BusLocationTracker = ({ busNumber }) => {
   }, [busNumber]);
 
   const fetchBusLocation = async () => {
+    if (!busNumber) {
+      console.log('Cannot fetch location: No bus number provided');
+      setConnectionStatus('inactive');
+      return;
+    }
+    
     try {
       const response = await fetch(`http://localhost:5001/api/driver/bus-location/${busNumber}`, {
         credentials: 'include'
@@ -149,38 +158,61 @@ const BusLocationTracker = ({ busNumber }) => {
   };
 
   return (
-    <div className="space-y-4">
+    <div className={`space-y-4 ${compact ? 'space-y-2' : ''}`}>
       {/* Status Header */}
-      <div className="bg-white p-4 rounded-lg shadow border">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className={`w-3 h-3 rounded-full ${
+      {!compact && (
+        <div className="bg-white p-4 rounded-lg shadow border">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className={`w-3 h-3 rounded-full ${
+                connectionStatus === 'connected' || connectionStatus === 'active' 
+                  ? 'bg-green-500 animate-pulse' 
+                  : 'bg-red-500'
+              }`}></div>
+              <span className={`font-medium ${getStatusColor()}`}>
+                {getStatusText()}
+              </span>
+            </div>
+            
+            {lastUpdate && (
+              <div className="flex items-center space-x-2 text-sm text-gray-500">
+                <Clock size={16} />
+                <span>Updated: {lastUpdate.toLocaleTimeString()}</span>
+              </div>
+            )}
+          </div>
+          
+          {busNumber && (
+            <p className="text-sm text-gray-600 mt-2">
+              Tracking Bus: <span className="font-medium">{busNumber}</span>
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Compact Status for Dashboard */}
+      {compact && (
+        <div className="flex items-center justify-between text-sm">
+          <div className="flex items-center space-x-2">
+            <div className={`w-2 h-2 rounded-full ${
               connectionStatus === 'connected' || connectionStatus === 'active' 
                 ? 'bg-green-500 animate-pulse' 
                 : 'bg-red-500'
             }`}></div>
-            <span className={`font-medium ${getStatusColor()}`}>
+            <span className={`${getStatusColor()}`}>
               {getStatusText()}
             </span>
           </div>
-          
           {lastUpdate && (
-            <div className="flex items-center space-x-2 text-sm text-gray-500">
-              <Clock size={16} />
-              <span>Updated: {lastUpdate.toLocaleTimeString()}</span>
-            </div>
+            <span className="text-gray-500 text-xs">
+              {lastUpdate.toLocaleTimeString()}
+            </span>
           )}
         </div>
-        
-        {busNumber && (
-          <p className="text-sm text-gray-600 mt-2">
-            Tracking Bus: <span className="font-medium">{busNumber}</span>
-          </p>
-        )}
-      </div>
+      )}
 
       {/* Map */}
-      <div className="h-96 rounded-lg overflow-hidden border">
+      <div className={`rounded-lg overflow-hidden border ${compact ? 'h-48' : 'h-96'}`}>
         {busLocation && busLocation.lat && busLocation.lng ? (
           <MapContainer
             center={[busLocation.lat, busLocation.lng]}
@@ -238,7 +270,7 @@ const BusLocationTracker = ({ busNumber }) => {
       </div>
 
       {/* Location Details */}
-      {busLocation && (
+      {busLocation && !compact && (
         <div className="bg-white p-4 rounded-lg shadow border">
           <h4 className="font-medium text-gray-900 mb-3">Location Details</h4>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
@@ -263,6 +295,14 @@ const BusLocationTracker = ({ busNumber }) => {
               </div>
             )}
           </div>
+        </div>
+      )}
+
+      {/* Compact Location Summary */}
+      {busLocation && compact && (
+        <div className="text-xs text-gray-600 flex justify-between">
+          <span>Lat: {busLocation?.lat?.toFixed(4)}, Lng: {busLocation?.lng?.toFixed(4)}</span>
+          {busLocation?.speed && <span>Speed: {busLocation.speed}km/h</span>}
         </div>
       )}
     </div>

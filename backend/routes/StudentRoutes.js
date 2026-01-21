@@ -3,6 +3,7 @@ const {
   getStudentDashboard,
   getStudentProfile,
   updateStudentProfile,
+  uploadProfileImage,
   applyForBus,
   getAvailableRoutes,
   sendSupportMessage,
@@ -10,6 +11,7 @@ const {
   getStudentAnnouncements
 } = require('../controllers/StudentController');
 const AuthProtect = require('../middlewares/AuthProtect');
+const { upload } = require('../config/multer');
 
 const router = express.Router();
 
@@ -80,6 +82,7 @@ router.get('/dashboard', AuthProtect, getStudentDashboard);
 // Profile management
 router.get('/profile', AuthProtect, getStudentProfile);
 router.put('/profile', AuthProtect, updateStudentProfile);
+router.post('/upload-profile-image', AuthProtect, upload.single('profileImage'), uploadProfileImage);
 
 // Bus application
 router.post('/apply-bus', AuthProtect, applyForBus);

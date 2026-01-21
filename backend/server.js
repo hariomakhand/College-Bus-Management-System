@@ -13,13 +13,15 @@ const adminRoutes = require('./routes/AdminRoutes');
 const notificationRoutes = require('./routes/NotificationRoutes');
 const studentRoutes = require('./routes/StudentRoutes');
 const driverRoutes = require('./routes/DriverRoutes');
+const uploadRoutes = require('./routes/UploadRoutes');
 
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: process.env.CLIENT_URL,
-    credentials: true
+    origin:process.env.CLIENT_URL,
+    credentials: true,
+ 
   }
 });
 const PORT = process.env.PORT || 5001;
@@ -28,9 +30,9 @@ const PORT = process.env.PORT || 5001;
 global.io = io;  
 
 // Body parsing middleware
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 app.use(cookieParser());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // CORS configuration
 app.use(cors({
@@ -44,6 +46,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/student', studentRoutes);
 app.use('/api/driver', driverRoutes);
+app.use('/api/upload', uploadRoutes);
 
 
 
@@ -65,9 +68,15 @@ io.on('connection', (socket) => {
   });
   
   // Student joins bus room to track
-  socket.on('join-student', (busNumber) => {
+  socket.on('join-student', (studentId) => {
+    socket.join(`student-${studentId}`);
+    console.log(`Student ${studentId} joined notification room`);
+  });
+  
+  // Student joins bus tracking room
+  socket.on('join-bus-tracking', (busNumber) => {
     socket.join(`bus-${busNumber}`);
-    console.log(`Student joined bus room: bus-${busNumber}`);
+    console.log(`Student joined bus tracking room: bus-${busNumber}`);
   });
   
   // Admin room
@@ -89,6 +98,7 @@ const connect = async () => {
 
     server.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
+     
     });
 
     

@@ -32,12 +32,12 @@ const updateBusLocation = async (req, res) => {
       });
     }
     
-    // GPS Accuracy Filter - more lenient for real-world usage
-    if (accuracy > 500) {
+    // GPS Accuracy Filter - accept network location for real-world usage
+    if (accuracy > 50000) { // 50km tolerance for network location
       console.log(`Rejected extremely poor GPS reading for bus ${busNumber}: ±${Math.round(accuracy)}m accuracy`);
       return res.status(400).json({
         success: false,
-        message: `GPS accuracy too poor: ±${Math.round(accuracy)}m. Need ≤500m for tracking.`,
+        message: `GPS accuracy too poor: ±${Math.round(accuracy)}m. Need ≤50km for tracking.`,
         accuracy: Math.round(accuracy)
       });
     }
@@ -59,6 +59,9 @@ const updateBusLocation = async (req, res) => {
 
     // Emit to students
     if (global.io) {
+      console.log(`BACKEND: Emitting busLocationUpdate to room bus-${busNumber}`);
+      console.log(`BACKEND: Location data:`, { lat, lng, accuracy: locationData.accuracy });
+      
       global.io.to(`bus-${busNumber}`).emit('busLocationUpdate', {
         busNumber,
         location: { lat, lng },
@@ -67,18 +70,30 @@ const updateBusLocation = async (req, res) => {
         timestamp: locationData.timestamp,
         tripStatus
       });
+      
+      console.log(`BACKEND: ✓ Emitted to bus-${busNumber}`);
+    } else {
+      console.log('BACKEND: ⚠️ Socket.io not available');
     }
 
     // Update database
-    await Bus.findOneAndUpdate(
+    console.log(`Updating database for bus ${busNumber} with location:`, { lat, lng });
+    const updateResult = await Bus.findOneAndUpdate(
       { busNumber },
       { 
         currentLocation: { lat, lng },
         lastLocationUpdate: new Date(),
         tripStatus: tripStatus || 'active',
         lastAccuracy: locationData.accuracy
-      }
+      },
+      { new: true }
     );
+    
+    if (updateResult) {
+      console.log(`✓ Database updated for bus ${busNumber}:`, updateResult.currentLocation);
+    } else {
+      console.log(`⚠️ Bus ${busNumber} not found in database`);
+    }
 
     res.json({
       success: true,
@@ -210,17 +225,43 @@ const getDriverDashboard = async (req, res) => {
       });
     }
 
-    // Get assigned bus and route
+    // Get assigned bus and route with detailed information
     const assignedBus = await Bus.findOne({
       driverId: driver._id,
       isDeleted: false
-    }).populate('routeId', 'routeName routeNumber startPoint endPoint stops');
+    }).populate('routeId');
 
     // Get students assigned to this driver's bus
     const assignedStudents = assignedBus ? await Student.find({
       busId: assignedBus._id,
       busRegistrationStatus: 'approved'
-    }).select('name studentId preferredPickupStop phone') : [];
+    }).select('name studentId preferredPickupStop phone profileImage') : [];
+
+    // Format route data with stops details
+    let assignedRoute = null;
+    if (assignedBus && assignedBus.routeId) {
+      const route = assignedBus.routeId;
+      assignedRoute = {
+        _id: route._id,
+        routeName: route.routeName,
+        routeNumber: route.routeNumber,
+        startPoint: route.startPoint,
+        endPoint: route.endPoint,
+        distance: route.distance,
+        estimatedTime: route.estimatedTime,
+        startTime: route.startTime || '07:00 AM',
+        endTime: route.endTime || '06:00 PM',
+        description: route.description,
+        stops: route.stopsDetails && route.stopsDetails.length > 0 
+          ? route.stopsDetails 
+          : route.stops 
+            ? route.stops.split(',').map((stop, index) => ({
+                stopName: stop.trim(),
+                timing: `${7 + Math.floor(index * 0.5)}:${(index * 30) % 60 < 10 ? '0' : ''}${(index * 30) % 60} AM`
+              }))
+            : []
+      };
+    }
 
     res.json({
       success: true,
@@ -232,9 +273,12 @@ const getDriverDashboard = async (req, res) => {
             busNumber: assignedBus.busNumber,
             model: assignedBus.model,
             capacity: assignedBus.capacity,
-            route: assignedBus.routeId
+            status: assignedBus.status,
+            currentLocation: assignedBus.currentLocation,
+            lastLocationUpdate: assignedBus.lastLocationUpdate
           } : null
         },
+        assignedRoute,
         assignedStudents,
         stats: {
           totalStudents: assignedStudents.length,
@@ -276,11 +320,84 @@ const updateDriverProfile = async (req, res) => {
   }
 };
 
+// Send Notification to Route Students
+const sendNotificationToStudents = async (req, res) => {
+  try {
+    const { message, type = 'info' } = req.body;
+    
+    if (!message || message.trim().length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Notification message is required'
+      });
+    }
+
+    // Get driver's assigned bus and route
+    const driver = await Driver.findById(req.user.id);
+    if (!driver) {
+      return res.status(404).json({
+        success: false,
+        message: 'Driver not found'
+      });
+    }
+
+    const assignedBus = await Bus.findOne({
+      driverId: driver._id,
+      isDeleted: false
+    }).populate('routeId');
+
+    if (!assignedBus) {
+      return res.status(400).json({
+        success: false,
+        message: 'No bus assigned to you'
+      });
+    }
+
+    // Get students registered for this bus/route
+    const students = await Student.find({
+      busId: assignedBus._id,
+      busRegistrationStatus: 'approved'
+    });
+
+    if (students.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No students found on your route'
+      });
+    }
+
+    // Send notification to each student via socket
+    if (global.io) {
+      const notificationData = {
+        type,
+        message,
+        from: `Driver ${driver.name}`,
+        busNumber: assignedBus.busNumber,
+        routeName: assignedBus.routeId?.routeName || 'Your Route',
+        timestamp: new Date()
+      };
+
+      students.forEach(student => {
+        global.io.to(`student-${student._id}`).emit('driverNotification', notificationData);
+      });
+    }
+
+    res.json({
+      success: true,
+      message: `Notification sent to ${students.length} students`,
+      studentsNotified: students.length
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   getDriverDashboard,
   updateDriverProfile,
   updateBusLocation,
   endTrip,
   getBusLocation,
+  sendNotificationToStudents,
   activeBusLocations
 };

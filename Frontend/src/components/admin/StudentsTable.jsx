@@ -78,8 +78,18 @@ const StudentsTable = ({ students, loading, deleteUser, searchTerm, handleStuden
                   }`}>
                     <td className="p-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                          <Users size={16} className="text-blue-600" />
+                        <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-gray-200">
+                          {student.profileImage?.url ? (
+                            <img 
+                              src={student.profileImage.url} 
+                              alt={student.name} 
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-blue-100 flex items-center justify-center">
+                              <Users size={20} className="text-blue-600" />
+                            </div>
+                          )}
                         </div>
                         <div>
                           <div className="font-semibold text-gray-900">{student.name}</div>
@@ -142,8 +152,18 @@ const StudentsTable = ({ students, loading, deleteUser, searchTerm, handleStuden
             {filteredStudents.map((student) => (
               <div key={student._id} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                    <Users size={18} className="text-blue-600" />
+                  <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-gray-200">
+                    {student.profileImage?.url ? (
+                      <img 
+                        src={student.profileImage.url} 
+                        alt={student.name} 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-blue-100 flex items-center justify-center">
+                        <Users size={20} className="text-blue-600" />
+                      </div>
+                    )}
                   </div>
                   <div className="flex-1">
                     <div className="font-semibold text-gray-900">{student.name}</div>
@@ -204,6 +224,23 @@ const StudentsTable = ({ students, loading, deleteUser, searchTerm, handleStuden
             
             <div className="p-4 sm:p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Profile Photo Section */}
+                <div className="md:col-span-2 flex justify-center mb-6">
+                  <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-gray-200 shadow-lg">
+                    {selectedStudent.profileImage?.url ? (
+                      <img 
+                        src={selectedStudent.profileImage.url} 
+                        alt={selectedStudent.name} 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-blue-100 flex items-center justify-center">
+                        <Users size={48} className="text-blue-600" />
+                      </div>
+                    )}
+                  </div>
+                </div>
+                
                 <div>
                   <h4 className="text-lg font-semibold mb-3 text-gray-800">Personal Info</h4>
                   <div className="space-y-2 text-sm">

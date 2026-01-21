@@ -4,6 +4,11 @@ import EditDriverModal from './EditDriverModal';
 
 const DriverDetailModal = ({ driver, onClose }) => {
   const [showEditModal, setShowEditModal] = useState(false);
+  
+  // Debug: Log driver data to see license document
+  console.log('Driver data in modal:', driver);
+  console.log('License document:', driver?.licenseDocument);
+  
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -36,8 +41,16 @@ const DriverDetailModal = ({ driver, onClose }) => {
             <X size={20} />
           </button>
           <div className="flex items-center space-x-4">
-            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
-              <User size={32} className="text-white" />
+            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center overflow-hidden">
+              {driver.profileImage?.url ? (
+                <img
+                  src={driver.profileImage.url}
+                  alt="Driver Profile"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <User size={32} className="text-white" />
+              )}
             </div>
             <div>
               <h2 className="text-2xl font-bold">{driver.name}</h2>
@@ -165,6 +178,96 @@ const DriverDetailModal = ({ driver, onClose }) => {
               </div>
             </div>
           </div>
+
+          {/* License Document */}
+          {driver.licenseDocument?.url ? (
+            <div style={{
+              backgroundColor: '#f0f9ff',
+              border: '1px solid #bae6fd',
+              borderRadius: '12px',
+              padding: '16px',
+              marginBottom: '24px'
+            }}>
+              <h3 style={{
+                fontSize: '18px',
+                fontWeight: '600',
+                color: '#0c4a6e',
+                marginBottom: '12px',
+                display: 'flex',
+                alignItems: 'center'
+              }}>
+                <CreditCard size={20} style={{ marginRight: '8px', color: '#0284c7' }} />
+                License Document
+              </h3>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                backgroundColor: 'white',
+                borderRadius: '8px',
+                padding: '12px',
+                border: '2px dashed #0284c7'
+              }}>
+                <img
+                  src={driver.licenseDocument.url}
+                  alt="Driver License"
+                  style={{
+                    maxWidth: '100%',
+                    maxHeight: '300px',
+                    objectFit: 'contain',
+                    borderRadius: '4px',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                  }}
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'block';
+                  }}
+                />
+                <div style={{
+                  display: 'none',
+                  textAlign: 'center',
+                  color: '#6b7280',
+                  padding: '20px'
+                }}>
+                  <CreditCard size={48} style={{ color: '#d1d5db', marginBottom: '8px' }} />
+                  <p style={{ margin: 0 }}>License document could not be loaded</p>
+                </div>
+              </div>
+              <p style={{
+                fontSize: '12px',
+                color: '#6b7280',
+                textAlign: 'center',
+                margin: '8px 0 0 0'
+              }}>
+                Uploaded on: {driver.licenseDocument.uploadedAt ? new Date(driver.licenseDocument.uploadedAt).toLocaleDateString() : 'Unknown'}
+              </p>
+            </div>
+          ) : (
+            <div style={{
+              backgroundColor: '#fef3c7',
+              border: '1px solid #fbbf24',
+              borderRadius: '12px',
+              padding: '16px',
+              marginBottom: '24px',
+              textAlign: 'center'
+            }}>
+              <h3 style={{
+                fontSize: '18px',
+                fontWeight: '600',
+                color: '#92400e',
+                marginBottom: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <CreditCard size={20} style={{ marginRight: '8px', color: '#d97706' }} />
+                License Document
+              </h3>
+              <p style={{ color: '#92400e', margin: 0 }}>
+                📄 No license document uploaded yet
+              </p>
+            </div>
+          )}
 
           {/* Emergency Contact */}
           {driver.emergencyContact && (

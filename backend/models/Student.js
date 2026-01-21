@@ -33,6 +33,10 @@ const studentSchema = new mongoose.Schema({
   // Additional contact info
   address: { type: String },
   emergencyContact: { type: String },
+  profileImage: {
+    url: String,
+    publicId: String
+  },
   isVerified: { type: Boolean, default: false },
   emailVerificationCode: { type: String },
   emailVerificationExpiry: { type: Date },

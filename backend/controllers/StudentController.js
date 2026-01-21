@@ -28,7 +28,7 @@ const getStudentDashboard = async (req, res) => {
           isDeleted: false
         })
           .populate('routeId', 'routeName routeNumber startPoint endPoint')
-          .populate('driverId', 'name phoneNumber');
+          .populate('driverId', 'name phoneNumber profileImage');
         
         if (assignedBus) {
           assignedRoute = assignedBus.routeId;
@@ -107,7 +107,8 @@ const getStudentDashboard = async (req, res) => {
           } : null,
           assignedDriver: assignedDriver ? {
             name: assignedDriver.name,
-            phone: assignedDriver.phoneNumber
+            phone: assignedDriver.phoneNumber,
+            profileImage: assignedDriver.profileImage
           } : null
         },
         alerts: alerts,
@@ -168,6 +169,65 @@ const updateStudentProfile = async (req, res) => {
   }
 };
 
+// Upload Profile Image
+const uploadProfileImage = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'No image file provided'
+      });
+    }
+
+    const cloudinary = require('../config/cloudinary');
+    
+    // Upload to Cloudinary
+    const result = await new Promise((resolve, reject) => {
+      cloudinary.uploader.upload_stream(
+        {
+          resource_type: 'image',
+          folder: 'student-profiles',
+          transformation: [
+            { width: 300, height: 300, crop: 'fill' },
+            { quality: 'auto' }
+          ]
+        },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      ).end(req.file.buffer);
+    });
+
+    const student = await Student.findByIdAndUpdate(
+      req.user.id,
+      {
+        profileImage: {
+          url: result.secure_url,
+          publicId: result.public_id
+        }
+      },
+      { new: true, validateBeforeSave: false }
+    ).select('-password');
+
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: 'Student not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Profile image uploaded successfully',
+      profileImage: student.profileImage
+    });
+  } catch (error) {
+    console.error('Profile image upload error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 // Apply for Bus Service
 const applyForBus = async (req, res) => {
   try {
@@ -183,11 +243,39 @@ const applyForBus = async (req, res) => {
       });
     }
 
-    if (student.busRegistrationStatus === 'pending' || student.busRegistrationStatus === 'approved') {
+    // Check if student is approved for registration
+    if (!student.isApproved) {
       return res.status(400).json({
         success: false,
-        message: 'You already have an active bus application'
+        message: 'Your registration is not approved yet. Please wait for admin approval.'
       });
+    }
+
+    console.log('Student application check:', {
+      studentId: student._id,
+      busRegistrationStatus: student.busRegistrationStatus,
+      appliedRouteId: student.appliedRouteId,
+      routeId: routeId,
+      isApproved: student.isApproved
+    });
+
+    if ((student.busRegistrationStatus === 'pending' || student.busRegistrationStatus === 'approved') && student.appliedRouteId) {
+      // Check if the applied route still exists
+      const existingRoute = await Route.findById(student.appliedRouteId);
+      if (existingRoute && !existingRoute.isDeleted) {
+        return res.status(400).json({
+          success: false,
+          message: 'You already have an active bus application'
+        });
+      } else {
+        // Route was deleted, clear the application
+        student.busRegistrationStatus = 'not_registered';
+        student.appliedRouteId = null;
+        student.busId = null;
+        student.preferredPickupStop = null;
+        student.applicationReason = null;
+        await student.save({ validateBeforeSave: false });
+      }
     }
 
     // Get the route to validate pickup stop
@@ -225,6 +313,7 @@ const applyForBus = async (req, res) => {
       message: 'Bus application submitted successfully. Your pickup stop has been added to the route if it was new.'
     });
   } catch (error) {
+    console.error('Apply for bus error:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -237,9 +326,34 @@ const getAvailableRoutes = async (req, res) => {
       isDeleted: false 
     }).select('routeName routeNumber startPoint endPoint distance estimatedTime stops');
 
+    // Get buses and drivers for each route
+    const routesWithDetails = await Promise.all(routes.map(async (route) => {
+      const buses = await Bus.find({ 
+        routeId: route._id,
+        isDeleted: false 
+      })
+      .populate('driverId', 'name phoneNumber email profileImage')
+      .select('busNumber model capacity driverId');
+
+      return {
+        ...route.toObject(),
+        buses: buses.map(bus => ({
+          busNumber: bus.busNumber,
+          model: bus.model,
+          capacity: bus.capacity,
+          driver: bus.driverId ? {
+            name: bus.driverId.name,
+            phone: bus.driverId.phoneNumber,
+            email: bus.driverId.email,
+            profileImage: bus.driverId.profileImage
+          } : null
+        }))
+      };
+    }));
+
     res.json({
       success: true,
-      routes
+      routes: routesWithDetails
     });
   } catch (error) {
     console.error('Error fetching routes:', error);
@@ -359,6 +473,7 @@ module.exports = {
   getStudentDashboard,
   getStudentProfile,
   updateStudentProfile,
+  uploadProfileImage,
   applyForBus,
   getAvailableRoutes,
   sendSupportMessage,

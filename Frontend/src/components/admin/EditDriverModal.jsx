@@ -1,435 +1,376 @@
-import React, { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
-import { useUpdateDriverMutation } from '../../store/apiSlice';
+import React, { useState } from 'react';
+import { X, Save, Upload, FileText, Image, Eye } from 'lucide-react';
+import FileUpload from '../FileUpload';
 
 const EditDriverModal = ({ driver, onClose, onUpdate }) => {
-  const [updateDriver, { isLoading }] = useUpdateDriverMutation();
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    licenseNumber: '',
-    phoneNumber: '',
-    dateOfBirth: '',
-    address: '',
-    emergencyContact: '',
-    experience: ''
+    name: driver.name || '',
+    email: driver.email || '',
+    phoneNumber: driver.phoneNumber || '',
+    licenseNumber: driver.licenseNumber || '',
+    address: driver.address || '',
+    emergencyContact: driver.emergencyContact || '',
+    experience: driver.experience || '',
+    dateOfBirth: driver.dateOfBirth ? new Date(driver.dateOfBirth).toISOString().split('T')[0] : '',
+    licenseDocument: driver.licenseDocument || null,
+    profileImage: driver.profileImage || null
   });
-  const [errors, setErrors] = useState({});
-
-  useEffect(() => {
-    if (driver) {
-      setFormData({
-        name: driver.name || '',
-        email: driver.email || '',
-        licenseNumber: driver.licenseNumber || '',
-        phoneNumber: driver.phoneNumber || '',
-        dateOfBirth: driver.dateOfBirth ? driver.dateOfBirth.split('T')[0] : '',
-        address: driver.address || '',
-        emergencyContact: driver.emergencyContact || '',
-        experience: driver.experience || ''
-      });
-    }
-  }, [driver]);
-
-  const validateForm = () => {
-    const newErrors = {};
-    
-    if (!formData.name.trim()) {
-      newErrors.name = 'Name is required';
-    }
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
-    }
-    if (!formData.licenseNumber.trim()) {
-      newErrors.licenseNumber = 'License number is required';
-    }
-    if (!formData.phoneNumber.trim()) {
-      newErrors.phoneNumber = 'Phone number is required';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+  
+  const [loading, setLoading] = useState(false);
+  const [showLicenseImage, setShowLicenseImage] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!validateForm()) return;
+    setLoading(true);
 
     try {
-      await updateDriver({
-        id: driver._id,
-        ...formData,
-        experience: formData.experience ? parseInt(formData.experience) : undefined
-      }).unwrap();
+      const response = await fetch(`http://localhost:5001/api/admin/drivers/${driver._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(formData)
+      });
+
+      const result = await response.json();
       
-      onUpdate?.();
-      onClose();
+      if (result.success) {
+        alert('Driver updated successfully!');
+        onUpdate();
+        onClose();
+      } else {
+        throw new Error(result.message);
+      }
     } catch (error) {
-      console.error('Failed to update driver:', error);
+      console.error('Update error:', error);
+      alert('Failed to update driver: ' + error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const renderError = (field) => {
-    return errors[field] ? (
-      <p style={{ color: '#dc2626', fontSize: '12px', marginTop: '4px' }}>
-        {errors[field]}
-      </p>
-    ) : null;
+  const handleLicenseUpload = (uploadData) => {
+    setFormData({
+      ...formData,
+      licenseDocument: {
+        url: uploadData.url,
+        publicId: uploadData.publicId
+      }
+    });
+  };
+
+  const handleProfileImageUpload = (uploadData) => {
+    setFormData({
+      ...formData,
+      profileImage: {
+        url: uploadData.url,
+        publicId: uploadData.publicId
+      }
+    });
   };
 
   return (
-    <div style={{
-      position: 'fixed',
-      inset: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.7)',
-      backdropFilter: 'blur(4px)',
-      zIndex: 60,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '16px'
-    }}>
-      <div style={{
-        backgroundColor: 'white',
-        borderRadius: '16px',
-        boxShadow: '0 25px 50px rgba(0, 0, 0, 0.25)',
-        width: '100%',
-        maxWidth: '600px',
-        maxHeight: '90vh',
-        overflow: 'hidden'
-      }}>
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden">
         {/* Header */}
-        <div style={{
-          background: 'linear-gradient(135deg, #ff7700 0%, #ff9233 100%)',
-          padding: '20px',
-          color: 'white',
-          position: 'relative'
-        }}>
+        <div className="bg-gradient-to-r from-orange-600 to-red-600 px-6 py-4 text-white relative">
           <button
             onClick={onClose}
-            style={{
-              position: 'absolute',
-              top: '16px',
-              right: '16px',
-              padding: '8px',
-              backgroundColor: 'rgba(255, 255, 255, 0.2)',
-              border: 'none',
-              borderRadius: '50%',
-              color: 'white',
-              cursor: 'pointer',
-              transition: 'all 0.2s ease'
-            }}
-            onMouseOver={(e) => {
-              e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.3)';
-            }}
-            onMouseOut={(e) => {
-              e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
-            }}
+            className="absolute top-4 right-4 p-2 hover:bg-white/20 rounded-full transition-colors"
           >
             <X size={20} />
           </button>
-          <h2 style={{
-            fontSize: '24px',
-            fontWeight: 'bold',
-            margin: 0,
-            marginBottom: '8px'
-          }}>
-            Edit Driver Details
-          </h2>
-          <p style={{
-            color: 'rgba(255, 255, 255, 0.8)',
-            margin: 0
-          }}>
-            Update driver information
-          </p>
+          <h2 className="text-2xl font-bold">Edit Driver - {driver.name}</h2>
+          <p className="text-orange-100">Update driver information and documents</p>
         </div>
 
         {/* Content */}
-        <div style={{ padding: '24px', maxHeight: 'calc(90vh - 120px)', overflowY: 'auto' }}>
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+        <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Basic Information */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Full Name *
+                </label>
                 <input
                   type="text"
-                  placeholder="Full Name"
                   value={formData.name}
                   onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    border: errors.name ? '1px solid #dc2626' : '1px solid #d1d5db',
-                    borderRadius: '8px',
-                    fontSize: '14px',
-                    outline: 'none',
-                    transition: 'all 0.2s ease'
-                  }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = '#ff7700';
-                    e.target.style.boxShadow = '0 0 0 3px rgba(255, 119, 0, 0.1)';
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = errors.name ? '#dc2626' : '#d1d5db';
-                    e.target.style.boxShadow = 'none';
-                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  required
                 />
-                {renderError('name')}
               </div>
 
               <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Email Address *
+                </label>
                 <input
                   type="email"
-                  placeholder="Email Address"
                   value={formData.email}
                   onChange={(e) => setFormData({...formData, email: e.target.value})}
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    border: errors.email ? '1px solid #dc2626' : '1px solid #d1d5db',
-                    borderRadius: '8px',
-                    fontSize: '14px',
-                    outline: 'none',
-                    transition: 'all 0.2s ease'
-                  }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = '#ff7700';
-                    e.target.style.boxShadow = '0 0 0 3px rgba(255, 119, 0, 0.1)';
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = errors.email ? '#dc2626' : '#d1d5db';
-                    e.target.style.boxShadow = 'none';
-                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  required
                 />
-                {renderError('email')}
-              </div>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-              <div>
-                <input
-                  type="text"
-                  placeholder="License Number"
-                  value={formData.licenseNumber}
-                  onChange={(e) => setFormData({...formData, licenseNumber: e.target.value})}
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    border: errors.licenseNumber ? '1px solid #dc2626' : '1px solid #d1d5db',
-                    borderRadius: '8px',
-                    fontSize: '14px',
-                    outline: 'none',
-                    transition: 'all 0.2s ease'
-                  }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = '#ff7700';
-                    e.target.style.boxShadow = '0 0 0 3px rgba(255, 119, 0, 0.1)';
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = errors.licenseNumber ? '#dc2626' : '#d1d5db';
-                    e.target.style.boxShadow = 'none';
-                  }}
-                />
-                {renderError('licenseNumber')}
               </div>
 
               <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Phone Number
+                </label>
                 <input
                   type="tel"
-                  placeholder="Phone Number"
                   value={formData.phoneNumber}
                   onChange={(e) => setFormData({...formData, phoneNumber: e.target.value})}
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    border: errors.phoneNumber ? '1px solid #dc2626' : '1px solid #d1d5db',
-                    borderRadius: '8px',
-                    fontSize: '14px',
-                    outline: 'none',
-                    transition: 'all 0.2s ease'
-                  }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = '#ff7700';
-                    e.target.style.boxShadow = '0 0 0 3px rgba(255, 119, 0, 0.1)';
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = errors.phoneNumber ? '#dc2626' : '#d1d5db';
-                    e.target.style.boxShadow = 'none';
-                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                 />
-                {renderError('phoneNumber')}
               </div>
-            </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
               <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  License Number
+                </label>
+                <input
+                  type="text"
+                  value={formData.licenseNumber}
+                  onChange={(e) => setFormData({...formData, licenseNumber: e.target.value.toUpperCase()})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Date of Birth
+                </label>
                 <input
                   type="date"
-                  placeholder="Date of Birth"
                   value={formData.dateOfBirth}
                   onChange={(e) => setFormData({...formData, dateOfBirth: e.target.value})}
-                  max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '8px',
-                    fontSize: '14px',
-                    outline: 'none',
-                    transition: 'all 0.2s ease'
-                  }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = '#ff7700';
-                    e.target.style.boxShadow = '0 0 0 3px rgba(255, 119, 0, 0.1)';
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = '#d1d5db';
-                    e.target.style.boxShadow = 'none';
-                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                 />
               </div>
 
               <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Experience (Years)
+                </label>
                 <input
                   type="number"
-                  placeholder="Experience (years)"
                   value={formData.experience}
                   onChange={(e) => setFormData({...formData, experience: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                   min="0"
                   max="50"
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '8px',
-                    fontSize: '14px',
-                    outline: 'none',
-                    transition: 'all 0.2s ease'
-                  }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = '#ff7700';
-                    e.target.style.boxShadow = '0 0 0 3px rgba(255, 119, 0, 0.1)';
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = '#d1d5db';
-                    e.target.style.boxShadow = 'none';
-                  }}
                 />
               </div>
             </div>
 
+            {/* Address */}
             <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Address
+              </label>
               <textarea
-                placeholder="Address"
                 value={formData.address}
                 onChange={(e) => setFormData({...formData, address: e.target.value})}
-                rows="3"
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  outline: 'none',
-                  transition: 'all 0.2s ease',
-                  resize: 'vertical'
-                }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = '#ff7700';
-                  e.target.style.boxShadow = '0 0 0 3px rgba(255, 119, 0, 0.1)';
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = '#d1d5db';
-                  e.target.style.boxShadow = 'none';
-                }}
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                placeholder="Enter full address..."
               />
             </div>
 
+            {/* Emergency Contact */}
             <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Emergency Contact
+              </label>
               <input
                 type="tel"
-                placeholder="Emergency Contact Number"
                 value={formData.emergencyContact}
                 onChange={(e) => setFormData({...formData, emergencyContact: e.target.value})}
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  outline: 'none',
-                  transition: 'all 0.2s ease'
-                }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = '#ff7700';
-                  e.target.style.boxShadow = '0 0 0 3px rgba(255, 119, 0, 0.1)';
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = '#d1d5db';
-                  e.target.style.boxShadow = 'none';
-                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                placeholder="Emergency contact number"
               />
             </div>
 
-            <div style={{ display: 'flex', gap: '12px', paddingTop: '16px' }}>
-              <button
-                type="submit"
-                disabled={isLoading}
-                style={{
-                  flex: 1,
-                  padding: '12px 24px',
-                  background: isLoading ? '#9ca3af' : 'linear-gradient(135deg, #ff7700 0%, #ff9233 100%)',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  cursor: isLoading ? 'not-allowed' : 'pointer',
-                  transition: 'all 0.2s ease'
-                }}
-                onMouseOver={(e) => {
-                  if (!isLoading) {
-                    e.target.style.transform = 'translateY(-1px)';
-                    e.target.style.boxShadow = '0 4px 12px rgba(255, 119, 0, 0.4)';
-                  }
-                }}
-                onMouseOut={(e) => {
-                  e.target.style.transform = 'translateY(0)';
-                  e.target.style.boxShadow = 'none';
-                }}
-              >
-                {isLoading ? 'Updating...' : 'Update Driver'}
-              </button>
-              <button
-                type="button"
-                onClick={onClose}
-                disabled={isLoading}
-                style={{
-                  flex: 1,
-                  padding: '12px 24px',
-                  backgroundColor: '#f3f4f6',
-                  color: '#374151',
-                  border: 'none',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  cursor: isLoading ? 'not-allowed' : 'pointer',
-                  transition: 'all 0.2s ease'
-                }}
-                onMouseOver={(e) => {
-                  if (!isLoading) {
-                    e.target.style.backgroundColor = '#e5e7eb';
-                  }
-                }}
-                onMouseOut={(e) => {
-                  e.target.style.backgroundColor = '#f3f4f6';
-                }}
-              >
-                Cancel
-              </button>
+            {/* Profile Image & License Document Section */}
+            <div className="border-t pt-6 space-y-6">
+              {/* Profile Image Section */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <Image className="mr-2 text-orange-600" size={20} />
+                  Profile Photo
+                </h3>
+
+                {/* Current Profile Image */}
+                {formData.profileImage?.url && (
+                  <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-center space-x-4">
+                      <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-100">
+                        <img
+                          src={formData.profileImage.url}
+                          alt="Profile"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div>
+                        <p className="font-medium text-blue-900">Current Profile Photo</p>
+                        <p className="text-sm text-blue-700">
+                          Uploaded: {formData.profileImage.uploadedAt ? 
+                            new Date(formData.profileImage.uploadedAt).toLocaleDateString() : 
+                            'Previously uploaded'
+                          }
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Upload New Profile Image */}
+                <div className="space-y-3">
+                  <label className="block text-sm font-medium text-gray-700">
+                    {formData.profileImage?.url ? 'Replace Profile Photo' : 'Upload Profile Photo'}
+                  </label>
+                  <FileUpload
+                    onUpload={handleProfileImageUpload}
+                    accept="image/*"
+                    folder="drivers/profiles"
+                    className="border-2 border-dashed border-gray-300 rounded-lg p-4"
+                  />
+                  <p className="text-xs text-gray-500">
+                    Supported formats: JPG, PNG, GIF (Max 10MB)
+                  </p>
+                </div>
+              </div>
+
+              {/* License Document Section */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <FileText className="mr-2 text-orange-600" size={20} />
+                  License Document
+                </h3>
+
+                {/* Current License Document */}
+                {formData.licenseDocument?.url && (
+                  <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                          <Image className="text-green-600" size={24} />
+                        </div>
+                        <div>
+                          <p className="font-medium text-green-900">License Document Available</p>
+                          <p className="text-sm text-green-700">
+                            Uploaded: {formData.licenseDocument.uploadedAt ? 
+                              new Date(formData.licenseDocument.uploadedAt).toLocaleDateString() : 
+                              'Previously uploaded'
+                            }
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowLicenseImage(true)}
+                        className="flex items-center space-x-2 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                      >
+                        <Eye size={16} />
+                        <span>View</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Upload New License Document */}
+                <div className="space-y-3">
+                  <label className="block text-sm font-medium text-gray-700">
+                    {formData.licenseDocument?.url ? 'Replace License Document' : 'Upload License Document'}
+                  </label>
+                  <FileUpload
+                    onUpload={handleLicenseUpload}
+                    accept="image/*,application/pdf"
+                    folder="drivers/licenses"
+                    className="border-2 border-dashed border-gray-300 rounded-lg p-4"
+                  />
+                  <p className="text-xs text-gray-500">
+                    Supported formats: JPG, PNG, PDF (Max 10MB)
+                  </p>
+                </div>
+              </div>
             </div>
           </form>
         </div>
+
+        {/* Footer */}
+        <div className="bg-gray-50 px-6 py-4 flex justify-end space-x-3 border-t">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={loading}
+            className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={loading}
+            className="px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors disabled:opacity-50 flex items-center space-x-2"
+          >
+            {loading ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                <span>Updating...</span>
+              </>
+            ) : (
+              <>
+                <Save size={16} />
+                <span>Update Driver</span>
+              </>
+            )}
+          </button>
+        </div>
       </div>
+
+      {/* License Image Viewer Modal */}
+      {showLicenseImage && formData.licenseDocument?.url && (
+        <div className="fixed inset-0 bg-black/80 z-[70] flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl max-h-[90vh] overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b">
+              <h3 className="text-lg font-semibold">License Document</h3>
+              <button
+                onClick={() => setShowLicenseImage(false)}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-4">
+              <img
+                src={formData.licenseDocument.url}
+                alt="License Document"
+                className="max-w-full max-h-[70vh] object-contain mx-auto rounded-lg"
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                  e.target.nextSibling.style.display = 'block';
+                }}
+              />
+              <div className="hidden text-center py-8">
+                <FileText size={48} className="mx-auto text-gray-400 mb-4" />
+                <p className="text-gray-600">Unable to display document preview</p>
+                <a
+                  href={formData.licenseDocument.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:text-blue-800 underline"
+                >
+                  Open in new tab
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -26,6 +26,12 @@ const ProfilePage = ({ userData, onUpdateProfile, isLoading }) => {
 
   const handleSaveProfile = async (formData) => {
     try {
+      // If it's just a refresh request (after image upload)
+      if (formData.refreshOnly) {
+        await onUpdateProfile({ refreshOnly: true });
+        return;
+      }
+      
       await onUpdateProfile(formData);
       setShowEditModal(false);
     } catch (error) {
@@ -41,8 +47,18 @@ const ProfilePage = ({ userData, onUpdateProfile, isLoading }) => {
           <div className="absolute inset-0 bg-black bg-opacity-10"></div>
           <div className="relative z-10 flex justify-between items-center">
             <div className="flex items-center space-x-6">
-              <div className="w-24 h-24 bg-white bg-opacity-20 backdrop-blur-sm rounded-3xl flex items-center justify-center border-2 border-white border-opacity-30 shadow-xl">
-                <User className="text-white" size={48} />
+              <div className="relative">
+                <div className="w-24 h-24 bg-white bg-opacity-20 backdrop-blur-sm rounded-3xl flex items-center justify-center border-2 border-white border-opacity-30 shadow-xl overflow-hidden">
+                  {userData?.profileImage?.url ? (
+                    <img 
+                      src={userData.profileImage.url} 
+                      alt="Profile" 
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <User className="text-white" size={48} />
+                  )}
+                </div>
               </div>
               <div>
                 <h1 className="text-4xl font-bold mb-2">{userData?.name || 'Student Name'}</h1>

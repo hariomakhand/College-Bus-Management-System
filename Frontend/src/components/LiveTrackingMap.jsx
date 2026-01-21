@@ -46,8 +46,21 @@ const LiveTrackingMap = ({ route, busNumber, driverId, socket }) => {
   const [isTracking, setIsTracking] = useState(false);
   const watchId = useRef(null);
   
-  // Default center (Dewas)
-  const defaultCenter = [22.9676, 76.0534];
+  // Default center (Sundrel, MP)
+  const defaultCenter = [22.8734, 75.8687];
+
+  useEffect(() => {
+    return () => {
+      if (watchId.current) {
+        if (typeof watchId.current === 'number') {
+          navigator.geolocation.clearWatch(watchId.current);
+        } else {
+          clearInterval(watchId.current);
+        }
+        watchId.current = null;
+      }
+    };
+  }, []);
 
   const startActualLocationTracking = (initialLocation) => {
     // Set initial location
@@ -94,50 +107,67 @@ const LiveTrackingMap = ({ route, busNumber, driverId, socket }) => {
     setTripStatus('active');
     setIsTracking(true);
     
-    // Try multiple GPS methods automatically
-    const tryGPSMethods = async () => {
-      console.log('Trying to get your location automatically...');
-      
-      // Method 1: High accuracy GPS
-      try {
-        const position = await new Promise((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(resolve, reject, {
+    // Get current location first
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const initialLocation = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+          accuracy: position.coords.accuracy,
+          speed: position.coords.speed || 0,
+          heading: position.coords.heading || 0,
+          timestamp: new Date().toISOString(),
+          isGPS: true
+        };
+        
+        console.log('Initial GPS location:', initialLocation);
+        setBusLocation(initialLocation);
+        updateLocationToBackend(initialLocation);
+        
+        // Start continuous tracking
+        watchId.current = navigator.geolocation.watchPosition(
+          (position) => {
+            const { latitude, longitude, accuracy, speed, heading } = position.coords;
+            
+            const newLocation = {
+              lat: latitude,
+              lng: longitude,
+              accuracy: accuracy,
+              speed: speed || 0,
+              heading: heading || 0,
+              timestamp: new Date().toISOString(),
+              isGPS: true
+            };
+            
+            console.log(`GPS Update: ${latitude}, ${longitude} (±${Math.round(accuracy)}m)`);
+            setBusLocation(newLocation);
+            updateLocationToBackend(newLocation);
+          },
+          (error) => {
+            if (error.code === 3) {
+              return;
+            }
+            console.error('GPS tracking error:', error);
+            startMockTracking();
+          },
+          {
             enableHighAccuracy: true,
             timeout: 10000,
-            maximumAge: 0
-          });
-        });
-        
-        console.log('High accuracy GPS success:', position.coords);
-        startGPSTracking(position);
-        return;
-      } catch (error) {
-        console.log('High accuracy GPS failed:', error.message);
+            maximumAge: 5000
+          }
+        );
+      },
+      (error) => {
+        console.error('Initial GPS error:', error);
+        console.log('Using mock location instead');
+        startMockTracking();
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 0
       }
-      
-      // Method 2: Normal GPS
-      try {
-        const position = await new Promise((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(resolve, reject, {
-            enableHighAccuracy: false,
-            timeout: 8000,
-            maximumAge: 30000
-          });
-        });
-        
-        console.log('Normal GPS success:', position.coords);
-        startGPSTracking(position);
-        return;
-      } catch (error) {
-        console.log('Normal GPS failed:', error.message);
-      }
-      
-      // Method 3: Fallback to mock location
-      console.log('All GPS methods failed, using mock location');
-      startMockTracking();
-    };
-    
-    tryGPSMethods();
+    );
   };
   
   const startGPSTracking = (initialPosition) => {
@@ -196,11 +226,12 @@ const LiveTrackingMap = ({ route, busNumber, driverId, socket }) => {
     setTripStatus('active');
     setIsTracking(true);
     
-    let mockLat = 22.9676;
-    let mockLng = 76.0534;
+    // Sundrel coordinates
+    let mockLat = 22.8734;
+    let mockLng = 75.8687;
     
     const updateMockLocation = () => {
-      // Simulate realistic bus movement
+      // Simulate realistic bus movement in Sundrel area
       mockLat += (Math.random() - 0.5) * 0.0005; // ~50m movement
       mockLng += (Math.random() - 0.5) * 0.0005;
       
@@ -211,12 +242,13 @@ const LiveTrackingMap = ({ route, busNumber, driverId, socket }) => {
         speed: Math.random() * 15, // 0-15 m/s
         heading: Math.random() * 360,
         timestamp: new Date().toISOString(),
-        isMock: true
+        isMock: true,
+        location: 'Sundrel, MP'
       };
       
       setBusLocation(mockLocation);
       updateLocationToBackend(mockLocation);
-      console.log('Mock location updated:', mockLocation);
+      console.log('Mock location updated (Sundrel):', mockLocation);
     };
     
     // Initial location
@@ -228,6 +260,8 @@ const LiveTrackingMap = ({ route, busNumber, driverId, socket }) => {
   };
   
   const stopTracking = () => {
+    console.log('Stopping tracking...');
+    
     if (watchId.current) {
       if (typeof watchId.current === 'number') {
         navigator.geolocation.clearWatch(watchId.current);
@@ -239,17 +273,25 @@ const LiveTrackingMap = ({ route, busNumber, driverId, socket }) => {
     
     setTripStatus('ended');
     setIsTracking(false);
+    setBusLocation(null);
     
-    // Notify backend
+    // Notify backend to stop tracking
     fetch('http://localhost:5001/api/driver/end-trip', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
       body: JSON.stringify({ driverId, busNumber, tripStatus: 'ended' })
+    }).then(() => {
+      console.log('Trip ended successfully');
     }).catch(console.error);
   };
   
   const updateLocationToBackend = async (location) => {
+    console.log('=== UPDATE LOCATION TO BACKEND ===');
+    console.log('Bus Number:', busNumber);
+    console.log('Driver ID:', driverId);
+    console.log('Location:', location);
+    
     try {
       const response = await fetch('http://localhost:5001/api/driver/update-location', {
         method: 'POST',
@@ -263,11 +305,29 @@ const LiveTrackingMap = ({ route, busNumber, driverId, socket }) => {
         })
       });
       
+      const result = await response.json();
+      console.log('Backend Response:', result);
+      
       if (response.ok) {
-        console.log(`Location sent: ±${Math.round(location.accuracy || 0)}m accuracy`);
+        console.log('✓ Location saved to DB successfully');
+        
+        // Emit to socket for real-time updates
+        if (socket && socket.connected) {
+          console.log('✓ Emitting to socket room bus-' + busNumber);
+          socket.emit('location-update', {
+            busNumber,
+            location,
+            driverId,
+            timestamp: location.timestamp
+          });
+        } else {
+          console.log('⚠️ Socket not connected');
+        }
+      } else {
+        console.error('✗ Failed to save location:', result);
       }
     } catch (error) {
-      console.error('Failed to update location:', error);
+      console.error('✗ Location update error:', error);
     }
   };
 
@@ -293,93 +353,13 @@ const LiveTrackingMap = ({ route, busNumber, driverId, socket }) => {
         
         <div className="flex space-x-2">
           {!isTracking ? (
-            <>
-              <button
-                onClick={startLiveTracking}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
-              >
-                <Play size={16} />
-                <span>Start Auto Tracking</span>
-              </button>
-              <button
-                onClick={() => {
-                  if (!navigator.geolocation) {
-                    alert('GPS not supported on this device');
-                    return;
-                  }
-                  
-                  const tryMultipleGPS = async () => {
-                    alert('Trying multiple GPS methods... Please wait');
-                    
-                    const methods = [
-                      // Method 1: High accuracy, no cache
-                      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 },
-                      // Method 2: High accuracy, longer timeout
-                      { enableHighAccuracy: true, timeout: 30000, maximumAge: 0 },
-                      // Method 3: Normal accuracy
-                      { enableHighAccuracy: false, timeout: 10000, maximumAge: 0 }
-                    ];
-                    
-                    for (let i = 0; i < methods.length; i++) {
-                      try {
-                        console.log(`GPS Method ${i + 1} trying...`);
-                        
-                        const position = await new Promise((resolve, reject) => {
-                          navigator.geolocation.getCurrentPosition(resolve, reject, methods[i]);
-                        });
-                        
-                        const { latitude, longitude, accuracy } = position.coords;
-                        
-                        // Check if this looks like a real GPS reading
-                        const isLikelyGPS = accuracy <= 100; // Good accuracy suggests real GPS
-                        
-                        const liveLocation = {
-                          lat: latitude,
-                          lng: longitude,
-                          accuracy: accuracy,
-                          speed: 0,
-                          heading: 0,
-                          timestamp: new Date().toISOString(),
-                          isLive: true,
-                          method: `GPS Method ${i + 1}`,
-                          isLikelyGPS: isLikelyGPS
-                        };
-                        
-                        setBusLocation(liveLocation);
-                        
-                        const locationInfo = `Location Found (Method ${i + 1}):\n\n` +
-                          `Latitude: ${latitude}\n` +
-                          `Longitude: ${longitude}\n` +
-                          `Accuracy: ±${Math.round(accuracy)}m\n` +
-                          `Quality: ${isLikelyGPS ? 'Good GPS' : 'Network-based'}\n\n` +
-                          `Location shown on map!\n\n` +
-                          `Google Maps: https://maps.google.com/?q=${latitude},${longitude}`;
-                        
-                        alert(locationInfo);
-                        console.log('GPS Result:', liveLocation);
-                        return; // Success, exit loop
-                        
-                      } catch (error) {
-                        console.log(`GPS Method ${i + 1} failed:`, error.message);
-                        if (i === methods.length - 1) {
-                          // All methods failed
-                          alert('All GPS methods failed. This might be because:\n\n' +
-                            '1. You\'re indoors (GPS needs open sky)\n' +
-                            '2. Location services are disabled\n' +
-                            '3. Browser is using network location\n\n' +
-                            'Try going outside and enabling high accuracy GPS.');
-                        }
-                      }
-                    }
-                  };
-                  
-                  tryMultipleGPS();
-                }}
-                className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
-              >
-                Advanced GPS Test
-              </button>
-            </>
+            <button
+              onClick={startLiveTracking}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
+            >
+              <Play size={16} />
+              <span>Start Tracking</span>
+            </button>
           ) : (
             <button
               onClick={stopTracking}
@@ -459,6 +439,26 @@ const LiveTrackingMap = ({ route, busNumber, driverId, socket }) => {
               <p className="text-gray-900">{Math.round((busLocation.speed || 0) * 3.6)} km/h</p>
             </div>
           </div>
+          
+          {/* Test DB Button */}
+          <button
+            onClick={async () => {
+              try {
+                const response = await fetch(`http://localhost:5001/api/driver/bus-location/${busNumber}`, {
+                  credentials: 'include'
+                });
+                const data = await response.json();
+                console.log('DB Location Check:', data);
+                alert('Check console for DB location data');
+              } catch (error) {
+                console.error('DB check error:', error);
+                alert('Error checking DB: ' + error.message);
+              }
+            }}
+            className="mt-4 w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+          >
+            Test: Check Location in DB
+          </button>
         </div>
       )}
     </div>
