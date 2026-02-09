@@ -77,24 +77,29 @@ const SharedDashboard = ({ type = 'admin' }) => {
       ];
     }
     
-    // Default admin config
+    // Default admin config - Gray and Yellow theme
     return [
-      { title: 'Total Buses', value: totalBuses, color: 'bg-blue-500', icon: Bus },
-      { title: 'Active Drivers', value: verifiedDrivers, color: 'bg-green-500', icon: UserCheck },
-      { title: 'Total Routes', value: totalRoutes, color: 'bg-orange-500', icon: MapPin },
-      { title: 'Students', value: totalStudents, color: 'bg-purple-500', icon: Users },
+      { title: 'Total Buses', value: totalBuses, color: 'bg-yellow-500', icon: Bus },
+      { title: 'Active Drivers', value: verifiedDrivers, color: 'bg-gray-600', icon: UserCheck },
+      { title: 'Total Routes', value: totalRoutes, color: 'bg-yellow-600', icon: MapPin },
+      { title: 'Students', value: totalStudents, color: 'bg-gray-700', icon: Users },
     ];
   };
 
   const statsArray = getStatsConfig();
 
-  // Chart data
+  // Chart data - Admin uses gray and yellow
   const barData = {
     labels: ['Buses', 'Drivers', 'Routes', 'Students'],
     datasets: [{
       label: 'Total Count',
       data: [totalBuses, totalDrivers, totalRoutes, totalStudents],
-      backgroundColor: [
+      backgroundColor: type === 'admin' ? [
+        'rgba(234, 179, 8, 0.8)',
+        'rgba(75, 85, 99, 0.8)',
+        'rgba(202, 138, 4, 0.8)',
+        'rgba(55, 65, 81, 0.8)'
+      ] : [
         'rgba(59, 130, 246, 0.8)',
         'rgba(16, 185, 129, 0.8)',
         'rgba(245, 158, 11, 0.8)',
@@ -102,7 +107,7 @@ const SharedDashboard = ({ type = 'admin' }) => {
       ],
       borderRadius: 8,
       borderWidth: 2,
-      borderColor: ['#3B82F6', '#10B981', '#F59E0B', '#8B5CF6'],
+      borderColor: type === 'admin' ? ['#EAB308', '#4B5563', '#CA8A04', '#374151'] : ['#3B82F6', '#10B981', '#F59E0B', '#8B5CF6'],
     }],
   };
 
@@ -110,7 +115,7 @@ const SharedDashboard = ({ type = 'admin' }) => {
     labels: ['Active', 'Maintenance', 'Inactive'],
     datasets: [{
       data: [activeBuses, maintenanceBuses, inactiveBuses],
-      backgroundColor: ['#10B981', '#F59E0B', '#EF4444'],
+      backgroundColor: type === 'admin' ? ['#EAB308', '#CA8A04', '#6B7280'] : ['#10B981', '#F59E0B', '#EF4444'],
       borderWidth: 2,
       borderColor: '#ffffff',
       hoverOffset: 4,
@@ -132,11 +137,11 @@ const SharedDashboard = ({ type = 'admin' }) => {
     datasets: [{
       label: 'Fleet Growth',
       data: growthData,
-      borderColor: '#3B82F6',
-      backgroundColor: 'rgba(59, 130, 246, 0.1)',
+      borderColor: type === 'admin' ? '#EAB308' : '#3B82F6',
+      backgroundColor: type === 'admin' ? 'rgba(234, 179, 8, 0.1)' : 'rgba(59, 130, 246, 0.1)',
       tension: 0.4,
       fill: true,
-      pointBackgroundColor: '#3B82F6',
+      pointBackgroundColor: type === 'admin' ? '#EAB308' : '#3B82F6',
       pointBorderColor: '#ffffff',
       pointBorderWidth: 2,
       pointRadius: 6,
@@ -206,7 +211,7 @@ const SharedDashboard = ({ type = 'admin' }) => {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {statsArray.map((stat, index) => (
-          <div key={index} className="bg-white rounded-lg shadow-lg p-6 border-l-4 border-blue-500">
+          <div key={index} className={`bg-white rounded-lg shadow-lg p-6 border-l-4 ${type === 'admin' ? 'border-yellow-500' : 'border-blue-500'}`}>
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm font-medium">{stat.title}</p>
@@ -269,18 +274,18 @@ const SharedDashboard = ({ type = 'admin' }) => {
           </div>
           <div className="mt-4 grid grid-cols-3 gap-2 text-xs">
             <div className="text-center">
-              <div className="w-3 h-3 bg-green-500 rounded-full mx-auto mb-1"></div>
-              <span className="text-green-600 font-semibold">{activeBuses}</span>
+              <div className={`w-3 h-3 ${type === 'admin' ? 'bg-yellow-500' : 'bg-green-500'} rounded-full mx-auto mb-1`}></div>
+              <span className={`${type === 'admin' ? 'text-yellow-600' : 'text-green-600'} font-semibold`}>{activeBuses}</span>
               <p className="text-gray-500">Active</p>
             </div>
             <div className="text-center">
-              <div className="w-3 h-3 bg-yellow-500 rounded-full mx-auto mb-1"></div>
-              <span className="text-yellow-600 font-semibold">{maintenanceBuses}</span>
+              <div className={`w-3 h-3 ${type === 'admin' ? 'bg-yellow-600' : 'bg-yellow-500'} rounded-full mx-auto mb-1`}></div>
+              <span className={`${type === 'admin' ? 'text-yellow-700' : 'text-yellow-600'} font-semibold`}>{maintenanceBuses}</span>
               <p className="text-gray-500">Maintenance</p>
             </div>
             <div className="text-center">
-              <div className="w-3 h-3 bg-red-500 rounded-full mx-auto mb-1"></div>
-              <span className="text-red-600 font-semibold">{inactiveBuses}</span>
+              <div className={`w-3 h-3 ${type === 'admin' ? 'bg-gray-600' : 'bg-red-500'} rounded-full mx-auto mb-1`}></div>
+              <span className={`${type === 'admin' ? 'text-gray-600' : 'text-red-600'} font-semibold`}>{inactiveBuses}</span>
               <p className="text-gray-500">Inactive</p>
             </div>
           </div>
@@ -311,33 +316,33 @@ const SharedDashboard = ({ type = 'admin' }) => {
             <div className="ml-2 w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
           </div>
           <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+            <div className={`flex items-center justify-between p-3 ${type === 'admin' ? 'bg-yellow-50' : 'bg-green-50'} rounded-lg`}>
               <div className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <div className={`w-2 h-2 ${type === 'admin' ? 'bg-yellow-500' : 'bg-green-500'} rounded-full`}></div>
                 <span className="text-sm text-gray-700">System Online</span>
               </div>
-              <span className="text-green-600 text-xs font-semibold">Active</span>
+              <span className={`${type === 'admin' ? 'text-yellow-600' : 'text-green-600'} text-xs font-semibold`}>Active</span>
             </div>
-            <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+            <div className={`flex items-center justify-between p-3 ${type === 'admin' ? 'bg-gray-100' : 'bg-blue-50'} rounded-lg`}>
               <div className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                <div className={`w-2 h-2 ${type === 'admin' ? 'bg-gray-600' : 'bg-blue-500'} rounded-full`}></div>
                 <span className="text-sm text-gray-700">Drivers Registered</span>
               </div>
-              <span className="text-blue-600 text-xs font-semibold">{totalDrivers}</span>
+              <span className={`${type === 'admin' ? 'text-gray-700' : 'text-blue-600'} text-xs font-semibold`}>{totalDrivers}</span>
             </div>
-            <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
+            <div className={`flex items-center justify-between p-3 ${type === 'admin' ? 'bg-yellow-100' : 'bg-orange-50'} rounded-lg`}>
               <div className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                <div className={`w-2 h-2 ${type === 'admin' ? 'bg-yellow-600' : 'bg-orange-500'} rounded-full`}></div>
                 <span className="text-sm text-gray-700">Buses in Maintenance</span>
               </div>
-              <span className="text-orange-600 text-xs font-semibold">{maintenanceBuses}</span>
+              <span className={`${type === 'admin' ? 'text-yellow-700' : 'text-orange-600'} text-xs font-semibold`}>{maintenanceBuses}</span>
             </div>
-            <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
+            <div className={`flex items-center justify-between p-3 ${type === 'admin' ? 'bg-gray-50' : 'bg-purple-50'} rounded-lg`}>
               <div className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                <div className={`w-2 h-2 ${type === 'admin' ? 'bg-gray-700' : 'bg-purple-500'} rounded-full`}></div>
                 <span className="text-sm text-gray-700">Active Routes</span>
               </div>
-              <span className="text-purple-600 text-xs font-semibold">{totalRoutes}</span>
+              <span className={`${type === 'admin' ? 'text-gray-700' : 'text-purple-600'} text-xs font-semibold`}>{totalRoutes}</span>
             </div>
           </div>
         </div>
@@ -353,11 +358,11 @@ const SharedDashboard = ({ type = 'admin' }) => {
               <div className="flex items-center space-x-2">
                 <div className="w-20 bg-gray-200 rounded-full h-2">
                   <div 
-                    className="bg-green-500 h-2 rounded-full transition-all duration-500" 
+                    className={`${type === 'admin' ? 'bg-yellow-500' : 'bg-green-500'} h-2 rounded-full transition-all duration-500`}
                     style={{ width: `${totalBuses > 0 ? (activeBuses / totalBuses) * 100 : 0}%` }}
                   ></div>
                 </div>
-                <span className="text-xs font-semibold text-green-600">
+                <span className={`text-xs font-semibold ${type === 'admin' ? 'text-yellow-600' : 'text-green-600'}`}>
                   {totalBuses > 0 ? Math.round((activeBuses / totalBuses) * 100) : 0}%
                 </span>
               </div>
@@ -368,11 +373,11 @@ const SharedDashboard = ({ type = 'admin' }) => {
               <div className="flex items-center space-x-2">
                 <div className="w-20 bg-gray-200 rounded-full h-2">
                   <div 
-                    className="bg-blue-500 h-2 rounded-full transition-all duration-500" 
+                    className={`${type === 'admin' ? 'bg-gray-600' : 'bg-blue-500'} h-2 rounded-full transition-all duration-500`}
                     style={{ width: `${totalDrivers > 0 ? (verifiedDrivers / totalDrivers) * 100 : 0}%` }}
                   ></div>
                 </div>
-                <span className="text-xs font-semibold text-blue-600">
+                <span className={`text-xs font-semibold ${type === 'admin' ? 'text-gray-700' : 'text-blue-600'}`}>
                   {totalDrivers > 0 ? Math.round((verifiedDrivers / totalDrivers) * 100) : 0}%
                 </span>
               </div>
@@ -383,11 +388,11 @@ const SharedDashboard = ({ type = 'admin' }) => {
               <div className="flex items-center space-x-2">
                 <div className="w-20 bg-gray-200 rounded-full h-2">
                   <div 
-                    className="bg-purple-500 h-2 rounded-full transition-all duration-500" 
+                    className={`${type === 'admin' ? 'bg-yellow-600' : 'bg-purple-500'} h-2 rounded-full transition-all duration-500`}
                     style={{ width: `${totalStudents > 0 ? (verifiedStudents / totalStudents) * 100 : 0}%` }}
                   ></div>
                 </div>
-                <span className="text-xs font-semibold text-purple-600">
+                <span className={`text-xs font-semibold ${type === 'admin' ? 'text-yellow-700' : 'text-purple-600'}`}>
                   {totalStudents > 0 ? Math.round((verifiedStudents / totalStudents) * 100) : 0}%
                 </span>
               </div>
@@ -396,11 +401,11 @@ const SharedDashboard = ({ type = 'admin' }) => {
             <div className="pt-4 border-t border-gray-200">
               <div className="grid grid-cols-2 gap-4 text-center">
                 <div>
-                  <p className="text-2xl font-bold text-green-600">{verifiedStudents}</p>
+                  <p className={`text-2xl font-bold ${type === 'admin' ? 'text-yellow-600' : 'text-green-600'}`}>{verifiedStudents}</p>
                   <p className="text-xs text-gray-500">Verified Students</p>
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-orange-600">{pendingStudents}</p>
+                  <p className={`text-2xl font-bold ${type === 'admin' ? 'text-gray-600' : 'text-orange-600'}`}>{pendingStudents}</p>
                   <p className="text-xs text-gray-500">Pending Students</p>
                 </div>
               </div>

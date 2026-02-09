@@ -16,8 +16,8 @@ const StudentsTable = ({ students, loading, deleteUser, searchTerm, handleStuden
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
-            <Users size={20} className="text-white" />
+          <div className="w-10 h-10 bg-yellow-500 rounded-lg flex items-center justify-center">
+            <Users size={20} className="text-gray-900" />
           </div>
           <div>
             <h3 className="text-lg sm:text-xl font-bold text-gray-900">
@@ -30,7 +30,7 @@ const StudentsTable = ({ students, loading, deleteUser, searchTerm, handleStuden
         </div>
         <button
           onClick={() => openAddModal("student")}
-          className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg font-semibold transition-colors"
+          className="w-full sm:w-auto bg-yellow-500 hover:bg-yellow-600 text-gray-900 px-4 py-2.5 rounded-lg font-semibold transition-colors"
         >
           + Add New Student
         </button>
@@ -44,14 +44,14 @@ const StudentsTable = ({ students, loading, deleteUser, searchTerm, handleStuden
           placeholder="Search students..."
           value={searchTerm}
           onChange={(e) => handleStudentSearch(e.target.value)}
-          className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
         />
       </div>
 
       {/* Table */}
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <div className="w-12 h-12 border-2 border-gray-200 border-t-blue-600 rounded-full animate-spin"></div>
+          <div className="w-12 h-12 border-2 border-gray-200 border-t-yellow-500 rounded-full animate-spin"></div>
           <span className="ml-3 text-gray-600">Loading...</span>
         </div>
       ) : filteredStudents.length === 0 ? (
@@ -64,7 +64,7 @@ const StudentsTable = ({ students, loading, deleteUser, searchTerm, handleStuden
           <div className="hidden md:block overflow-x-auto">
             <table className="w-full border-collapse">
               <thead>
-                <tr className="bg-gray-50 border-b-2 border-gray-200">
+                <tr className="bg-gradient-to-r from-gray-100 to-yellow-100 border-b-2 border-yellow-300">
                   <th className="text-left p-4 font-semibold text-gray-700">Student Info</th>
                   <th className="text-left p-4 font-semibold text-gray-700">Details</th>
                   <th className="text-left p-4 font-semibold text-gray-700">Status</th>
@@ -73,8 +73,8 @@ const StudentsTable = ({ students, loading, deleteUser, searchTerm, handleStuden
               </thead>
               <tbody>
                 {filteredStudents.map((student, index) => (
-                  <tr key={student._id} className={`border-b border-gray-100 hover:bg-gray-50 ${
-                    index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
+                  <tr key={student._id} className={`border-b border-gray-200 hover:bg-yellow-50 transition-colors ${
+                    index % 2 === 0 ? 'bg-gray-50' : 'bg-white'
                   }`}>
                     <td className="p-4">
                       <div className="flex items-center gap-3">
@@ -86,8 +86,8 @@ const StudentsTable = ({ students, loading, deleteUser, searchTerm, handleStuden
                               className="w-full h-full object-cover"
                             />
                           ) : (
-                            <div className="w-full h-full bg-blue-100 flex items-center justify-center">
-                              <Users size={20} className="text-blue-600" />
+                            <div className="w-full h-full bg-yellow-100 flex items-center justify-center">
+                              <Users size={20} className="text-yellow-600" />
                             </div>
                           )}
                         </div>
@@ -114,7 +114,7 @@ const StudentsTable = ({ students, loading, deleteUser, searchTerm, handleStuden
 
                     <td className="p-4">
                       <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        student.isVerified ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                        student.isVerified ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-200 text-gray-700'
                       }`}>
                         {student.isVerified ? 'Verified' : 'Pending'}
                       </span>
@@ -127,14 +127,14 @@ const StudentsTable = ({ students, loading, deleteUser, searchTerm, handleStuden
                             setSelectedStudent(student);
                             setShowDetailsModal(true);
                           }}
-                          className="bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-1"
+                          className="bg-yellow-50 hover:bg-yellow-100 text-yellow-700 border border-yellow-300 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-1"
                         >
                           <Eye size={14} />
                           View
                         </button>
                         <button
                           onClick={() => deleteUser("students", student._id)}
-                          className="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-1"
+                          className="bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-300 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-1"
                         >
                           <Trash2 size={14} />
                           Delete
@@ -150,7 +150,7 @@ const StudentsTable = ({ students, loading, deleteUser, searchTerm, handleStuden
           {/* Mobile Cards */}
           <div className="md:hidden space-y-4">
             {filteredStudents.map((student) => (
-              <div key={student._id} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+              <div key={student._id} className="bg-gray-50 border border-gray-300 rounded-lg p-4 shadow-sm hover:bg-yellow-50 transition-colors">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-gray-200">
                     {student.profileImage?.url ? (
@@ -160,8 +160,8 @@ const StudentsTable = ({ students, loading, deleteUser, searchTerm, handleStuden
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full bg-blue-100 flex items-center justify-center">
-                        <Users size={20} className="text-blue-600" />
+                      <div className="w-full h-full bg-yellow-100 flex items-center justify-center">
+                        <Users size={20} className="text-yellow-600" />
                       </div>
                     )}
                   </div>
@@ -170,7 +170,7 @@ const StudentsTable = ({ students, loading, deleteUser, searchTerm, handleStuden
                     <div className="text-sm text-gray-600">{student.email}</div>
                   </div>
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    student.isVerified ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                    student.isVerified ? 'bg-yellow-200 text-gray-900' : 'bg-gray-300 text-gray-700'
                   }`}>
                     {student.isVerified ? 'Verified' : 'Pending'}
                   </span>
@@ -188,14 +188,14 @@ const StudentsTable = ({ students, loading, deleteUser, searchTerm, handleStuden
                       setSelectedStudent(student);
                       setShowDetailsModal(true);
                     }}
-                    className="flex-1 bg-blue-100 hover:bg-blue-200 text-blue-700 py-2 px-3 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                    className="flex-1 bg-yellow-200 hover:bg-yellow-300 text-gray-900 py-2 px-3 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
                   >
                     <Eye size={14} />
                     View Details
                   </button>
                   <button
                     onClick={() => deleteUser("students", student._id)}
-                    className="bg-red-100 hover:bg-red-200 text-red-700 py-2 px-3 rounded-lg text-sm font-medium transition-colors"
+                    className="bg-gray-300 hover:bg-gray-400 text-gray-900 py-2 px-3 rounded-lg text-sm font-medium transition-colors"
                   >
                     <Trash2 size={14} />
                   </button>
@@ -234,8 +234,8 @@ const StudentsTable = ({ students, loading, deleteUser, searchTerm, handleStuden
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full bg-blue-100 flex items-center justify-center">
-                        <Users size={48} className="text-blue-600" />
+                      <div className="w-full h-full bg-yellow-100 flex items-center justify-center">
+                        <Users size={48} className="text-yellow-600" />
                       </div>
                     )}
                   </div>
@@ -282,7 +282,7 @@ const StudentsTable = ({ students, loading, deleteUser, searchTerm, handleStuden
             <div className="p-4 sm:p-6 border-t-2 border-gray-200 flex justify-end">
               <button
                 onClick={() => setShowDetailsModal(false)}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+                className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 px-6 py-2 rounded-lg font-medium transition-colors"
               >
                 Close
               </button>

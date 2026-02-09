@@ -1,21 +1,19 @@
 import { useLogoutMutation } from '../store/apiSlice';
 import { useAuth } from '../Context/AuthContext';
+import { toast } from 'react-toastify';
 
 export const useLogout = () => {
   const [logoutMutation] = useLogoutMutation();
   const { setUser } = useAuth();
 
   const logout = async () => {
-    console.log("🔄 RTK Logout function called");
     try {
-      console.log("📡 Calling backend logout with RTK...");
       await logoutMutation().unwrap();
-      console.log("✅ Backend logout successful");
+      toast.success("Logged out successfully!");
     } catch (err) {
-      console.log("❌ Backend logout error:", err);
+      toast.error("Logout failed!");
     }
     
-    console.log("🧹 Clearing frontend data...");
     setUser(null);
     localStorage.clear();
     sessionStorage.clear();
@@ -25,8 +23,6 @@ export const useLogout = () => {
       const name = eqPos > -1 ? c.substr(0, eqPos).trim() : c.trim();
       document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
     });
-    
-    console.log("✅ RTK logout complete");
   };
 
   return logout;

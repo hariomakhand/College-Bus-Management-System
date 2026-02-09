@@ -33,7 +33,7 @@ const DriverDetailModal = ({ driver, onClose }) => {
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 text-white relative">
+        <div className="bg-gradient-to-r from-gray-700 to-yellow-600 px-6 py-4 text-white relative">
           <button
             onClick={onClose}
             className="absolute top-4 right-4 p-2 hover:bg-white/20 rounded-full transition-colors"
@@ -54,7 +54,7 @@ const DriverDetailModal = ({ driver, onClose }) => {
             </div>
             <div>
               <h2 className="text-2xl font-bold">{driver.name}</h2>
-              <p className="text-blue-100">Professional Driver</p>
+              <p className="text-yellow-100">Professional Driver</p>
             </div>
           </div>
         </div>
@@ -74,9 +74,9 @@ const DriverDetailModal = ({ driver, onClose }) => {
               borderRadius: '20px',
               fontSize: '14px',
               fontWeight: '500',
-              backgroundColor: driver.isVerified ? '#dcfce7' : '#fef3c7',
-              color: driver.isVerified ? '#166534' : '#92400e',
-              border: driver.isVerified ? '1px solid #bbf7d0' : '1px solid #fde68a'
+              backgroundColor: driver.isVerified ? '#fef3c7' : '#f3f4f6',
+              color: driver.isVerified ? '#92400e' : '#4b5563',
+              border: driver.isVerified ? '1px solid #fde68a' : '1px solid #d1d5db'
             }}>
               <Shield size={16} style={{ marginRight: '8px' }} />
               {driver.isVerified ? 'Verified Driver' : 'Pending Verification'}
@@ -104,7 +104,7 @@ const DriverDetailModal = ({ driver, onClose }) => {
                 display: 'flex',
                 alignItems: 'center'
               }}>
-                <Phone size={20} style={{ marginRight: '8px', color: '#ff7700' }} />
+                <Phone size={20} style={{ marginRight: '8px', color: '#eab308' }} />
                 Contact Information
               </h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -146,7 +146,7 @@ const DriverDetailModal = ({ driver, onClose }) => {
                 display: 'flex',
                 alignItems: 'center'
               }}>
-                <CreditCard size={20} style={{ marginRight: '8px', color: '#ff7700' }} />
+                <CreditCard size={20} style={{ marginRight: '8px', color: '#eab308' }} />
                 Professional Details
               </h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -182,8 +182,8 @@ const DriverDetailModal = ({ driver, onClose }) => {
           {/* License Document */}
           {driver.licenseDocument?.url ? (
             <div style={{
-              backgroundColor: '#f0f9ff',
-              border: '1px solid #bae6fd',
+              backgroundColor: '#fef3c7',
+              border: '1px solid #fde68a',
               borderRadius: '12px',
               padding: '16px',
               marginBottom: '24px'
@@ -191,12 +191,12 @@ const DriverDetailModal = ({ driver, onClose }) => {
               <h3 style={{
                 fontSize: '18px',
                 fontWeight: '600',
-                color: '#0c4a6e',
+                color: '#92400e',
                 marginBottom: '12px',
                 display: 'flex',
                 alignItems: 'center'
               }}>
-                <CreditCard size={20} style={{ marginRight: '8px', color: '#0284c7' }} />
+                <CreditCard size={20} style={{ marginRight: '8px', color: '#eab308' }} />
                 License Document
               </h3>
               <div style={{
@@ -206,7 +206,7 @@ const DriverDetailModal = ({ driver, onClose }) => {
                 backgroundColor: 'white',
                 borderRadius: '8px',
                 padding: '12px',
-                border: '2px dashed #0284c7'
+                border: '2px dashed #eab308'
               }}>
                 <img
                   src={driver.licenseDocument.url}
@@ -244,8 +244,8 @@ const DriverDetailModal = ({ driver, onClose }) => {
             </div>
           ) : (
             <div style={{
-              backgroundColor: '#fef3c7',
-              border: '1px solid #fbbf24',
+              backgroundColor: '#f3f4f6',
+              border: '1px solid #d1d5db',
               borderRadius: '12px',
               padding: '16px',
               marginBottom: '24px',
@@ -254,16 +254,16 @@ const DriverDetailModal = ({ driver, onClose }) => {
               <h3 style={{
                 fontSize: '18px',
                 fontWeight: '600',
-                color: '#92400e',
+                color: '#4b5563',
                 marginBottom: '8px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center'
               }}>
-                <CreditCard size={20} style={{ marginRight: '8px', color: '#d97706' }} />
+                <CreditCard size={20} style={{ marginRight: '8px', color: '#6b7280' }} />
                 License Document
               </h3>
-              <p style={{ color: '#92400e', margin: 0 }}>
+              <p style={{ color: '#4b5563', margin: 0 }}>
                 📄 No license document uploaded yet
               </p>
             </div>
@@ -295,8 +295,8 @@ const DriverDetailModal = ({ driver, onClose }) => {
 
           {/* Assignment Status */}
           <div style={{
-            backgroundColor: '#fff7ed',
-            border: '1px solid #fed7aa',
+            backgroundColor: '#fef3c7',
+            border: '1px solid #fde68a',
             borderRadius: '12px',
             padding: '16px',
             marginBottom: '24px'
@@ -304,28 +304,28 @@ const DriverDetailModal = ({ driver, onClose }) => {
             <h3 style={{
               fontSize: '18px',
               fontWeight: '600',
-              color: '#9a3412',
+              color: '#92400e',
               marginBottom: '12px'
             }}>Current Assignment</h3>
             {driver.assignedBus ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ color: '#c2410c' }}>Bus Number:</span>
-                  <span style={{ fontWeight: '600', color: '#9a3412' }}>{driver.assignedBus.busNumber}</span>
+                  <span style={{ color: '#92400e' }}>Bus Number:</span>
+                  <span style={{ fontWeight: '600', color: '#92400e' }}>{driver.assignedBus.busNumber}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ color: '#c2410c' }}>Capacity:</span>
-                  <span style={{ fontWeight: '600', color: '#9a3412' }}>{driver.assignedBus.capacity} seats</span>
+                  <span style={{ color: '#92400e' }}>Capacity:</span>
+                  <span style={{ fontWeight: '600', color: '#92400e' }}>{driver.assignedBus.capacity} seats</span>
                 </div>
                 {driver.assignedBus.route && (
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ color: '#c2410c' }}>Route:</span>
-                    <span style={{ fontWeight: '600', color: '#9a3412' }}>{driver.assignedBus.route.routeName}</span>
+                    <span style={{ color: '#92400e' }}>Route:</span>
+                    <span style={{ fontWeight: '600', color: '#92400e' }}>{driver.assignedBus.route.routeName}</span>
                   </div>
                 )}
               </div>
             ) : (
-              <p style={{ color: '#c2410c', margin: 0 }}>No bus currently assigned</p>
+              <p style={{ color: '#92400e', margin: 0 }}>No bus currently assigned</p>
             )}
           </div>
 
@@ -375,8 +375,8 @@ const DriverDetailModal = ({ driver, onClose }) => {
             onClick={() => setShowEditModal(true)}
             style={{
               padding: '12px 24px',
-              backgroundColor: '#ff7700',
-              color: 'white',
+              backgroundColor: '#eab308',
+              color: '#1f2937',
               border: 'none',
               borderRadius: '8px',
               fontSize: '14px',
@@ -388,10 +388,10 @@ const DriverDetailModal = ({ driver, onClose }) => {
               transition: 'all 0.2s ease'
             }}
             onMouseOver={(e) => {
-              e.target.style.backgroundColor = '#ea580c';
+              e.target.style.backgroundColor = '#ca8a04';
             }}
             onMouseOut={(e) => {
-              e.target.style.backgroundColor = '#ff7700';
+              e.target.style.backgroundColor = '#eab308';
             }}
           >
             <Edit size={16} />

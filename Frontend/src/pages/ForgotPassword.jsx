@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate, Link } from "react-router-dom";
+import { toast } from 'react-toastify';
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -22,13 +23,16 @@ export default function ForgotPassword() {
       const result = await response.json();
       
       if (response.ok) {
+        toast.success("Password reset link sent to your email!");
         setMessage("Password reset link sent to your email!");
         setIsSuccess(true);
       } else {
+        toast.error(result.message || "Failed to send reset link");
         setMessage(result.message || "Failed to send reset link");
         setIsSuccess(false);
       }
     } catch (err) {
+      toast.error("Something went wrong. Please try again.");
       setMessage("Something went wrong. Please try again.");
       setIsSuccess(false);
     } finally {

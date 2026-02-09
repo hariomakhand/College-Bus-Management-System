@@ -4,6 +4,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../Context/AuthContext";
 import { useLoginMutation } from "../store/apiSlice";
 import { Eye, EyeOff } from "lucide-react";
+import { toast } from 'react-toastify';
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -18,7 +19,7 @@ export default function Login() {
     e.preventDefault();
     try {
       const result = await login({ email, password }).unwrap();
-      alert(`Login successful as ${result.user.role} ✅`);
+      toast.success(`Login successful as ${result.user.role}!`);
       setUser(result.user);
       switch (result.user.role.toLowerCase()) {
         case "admin": navigate("/admin"); break;
@@ -27,7 +28,7 @@ export default function Login() {
         default: navigate("/");
       }
     } catch (err) {
-      alert(err.data?.message || "Login failed ❌");
+      toast.error(err.data?.message || "Login failed!");
       setEmail(""); setPassword("");
     }
   };

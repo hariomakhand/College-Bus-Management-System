@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../Context/AuthContext';
 import { useLogout } from '../hooks/useLogout';
+import Sidebar from '../components/Sidebar';
 import {
   useGetDriverDashboardQuery,
   useUpdateDriverProfileMutation,
@@ -20,6 +21,7 @@ const DriverPanel = () => {
   const [socket, setSocket] = useState(null);
   const [notificationMessage, setNotificationMessage] = useState('');
   const [notificationType, setNotificationType] = useState('info');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileData, setProfileData] = useState({
     name: '',
     phoneNumber: '',
@@ -29,6 +31,22 @@ const DriverPanel = () => {
   });
   const { user } = useAuth();
   const logout = useLogout();
+
+  // Mobile screen detection
+  useEffect(() => {
+    const checkMobile = () => {
+      if (window.innerWidth < 1024) { // lg breakpoint
+        setSidebarOpen(false);
+      } else {
+        setSidebarOpen(true);
+      }
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // RTK Query hooks
   const { data: driverData, isLoading: loading, refetch } = useGetDriverDashboardQuery();
@@ -137,9 +155,9 @@ const DriverPanel = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-600 border-t-transparent mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-yellow-500 border-t-transparent mx-auto mb-4"></div>
           <p className="text-gray-600 font-medium">Loading Dashboard...</p>
         </div>
       </div>
@@ -149,9 +167,9 @@ const DriverPanel = () => {
   const renderDashboard = () => (
     <div className="space-y-8">
       {/* Welcome Section */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl shadow-xl p-8 text-white">
+      <div className="bg-gradient-to-r from-gray-800 to-gray-900 rounded-2xl shadow-xl p-8 text-white">
         <div className="flex items-center space-x-4">
-          <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center overflow-hidden">
+          <div className="w-16 h-16 bg-yellow-500 bg-opacity-20 rounded-full flex items-center justify-center overflow-hidden">
             {driverData?.data?.driver?.profileImage?.url ? (
               <img
                 src={driverData.data.driver.profileImage.url}
@@ -159,63 +177,63 @@ const DriverPanel = () => {
                 className="w-full h-full object-cover"
               />
             ) : (
-              <User className="text-white" size={32} />
+              <User className="text-yellow-400" size={32} />
             )}
           </div>
           <div>
             <h1 className="text-3xl font-bold">Welcome, {driverData?.data?.driver?.name || 'Driver'}!</h1>
-            <p className="text-white opacity-90 mt-1">{driverData?.data?.driver?.email} • License: {driverData?.data?.driver?.licenseNumber || 'N/A'}</p>
+            <p className="text-gray-300 mt-1">{driverData?.data?.driver?.email} • License: {driverData?.data?.driver?.licenseNumber || 'N/A'}</p>
           </div>
         </div>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
+        <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-yellow-500">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Assigned Bus</p>
-              <p className="text-2xl font-bold text-blue-600">
+              <p className="text-2xl font-bold text-gray-900">
                 {driverData?.data?.driver?.assignedBus?.busNumber || 'Not Assigned'}
               </p>
             </div>
-            <Bus className="text-blue-500" size={32} />
+            <Bus className="text-yellow-500" size={32} />
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-400">
+        <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-gray-500">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Total Students</p>
-              <p className="text-2xl font-bold text-blue-600">
+              <p className="text-2xl font-bold text-gray-900">
                 {driverData?.data?.stats?.totalStudents || 0}
               </p>
             </div>
-            <Users className="text-blue-400" size={32} />
+            <Users className="text-gray-500" size={32} />
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-indigo-500">
+        <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-yellow-600">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Bus Capacity</p>
-              <p className="text-2xl font-bold text-indigo-600">
+              <p className="text-2xl font-bold text-gray-900">
                 {driverData?.data?.stats?.busCapacity || 0}
               </p>
             </div>
-            <CheckCircle className="text-indigo-500" size={32} />
+            <CheckCircle className="text-yellow-600" size={32} />
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-sky-500">
+        <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-gray-600">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Available Seats</p>
-              <p className="text-2xl font-bold text-sky-600">
+              <p className="text-2xl font-bold text-gray-900">
                 {driverData?.data?.stats?.availableSeats || 0}
               </p>
             </div>
-            <AlertTriangle className="text-sky-500" size={32} />
+            <AlertTriangle className="text-gray-600" size={32} />
           </div>
         </div>
       </div>
@@ -224,30 +242,30 @@ const DriverPanel = () => {
       {driverData?.data?.driver?.assignedBus && (
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-            <Bus className="mr-3 text-blue-600" size={28} />
+            <Bus className="mr-3 text-yellow-600" size={28} />
             Your Assigned Bus
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl">
+            <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 p-6 rounded-xl">
               <div className="flex items-center space-x-3 mb-3">
-                <Bus className="text-blue-600" size={24} />
+                <Bus className="text-yellow-600" size={24} />
                 <span className="text-sm font-medium text-gray-600">Bus Number</span>
               </div>
               <p className="text-2xl font-bold text-gray-900">{driverData.data.driver.assignedBus.busNumber}</p>
             </div>
 
-            <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 p-6 rounded-xl">
+            <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-6 rounded-xl">
               <div className="flex items-center space-x-3 mb-3">
-                <Settings className="text-indigo-600" size={24} />
+                <Settings className="text-gray-600" size={24} />
                 <span className="text-sm font-medium text-gray-600">Model</span>
               </div>
               <p className="text-xl font-bold text-gray-900">{driverData.data.driver.assignedBus.model}</p>
             </div>
 
-            <div className="bg-gradient-to-br from-sky-50 to-sky-100 p-6 rounded-xl">
+            <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 p-6 rounded-xl">
               <div className="flex items-center space-x-3 mb-3">
-                <Users className="text-sky-600" size={24} />
+                <Users className="text-yellow-600" size={24} />
                 <span className="text-sm font-medium text-gray-600">Capacity</span>
               </div>
               <p className="text-xl font-bold text-gray-900">{driverData.data.driver.assignedBus.capacity} seats</p>
@@ -262,12 +280,12 @@ const DriverPanel = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-900 flex items-center">
-          <MapPin className="mr-3 text-blue-600" size={28} />
+          <MapPin className="mr-3 text-yellow-600" size={28} />
           Live GPS Tracking
         </h2>
         {driverData?.data?.driver?.assignedBus && (
-          <div className="bg-blue-50 px-4 py-2 rounded-full border border-blue-200">
-            <span className="text-blue-700 font-medium text-sm">
+          <div className="bg-yellow-50 px-4 py-2 rounded-full border border-yellow-200">
+            <span className="text-gray-900 font-medium text-sm">
               Bus: {driverData.data.driver.assignedBus.busNumber}
             </span>
           </div>
@@ -305,12 +323,12 @@ const DriverPanel = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-900 flex items-center">
-          <Route className="mr-3 text-blue-600" size={28} />
+          <Route className="mr-3 text-yellow-600" size={28} />
           My Route
         </h2>
         {driverData?.data?.assignedRoute && (
-          <div className="bg-blue-50 px-4 py-2 rounded-full border border-blue-200">
-            <span className="text-blue-700 font-medium text-sm">
+          <div className="bg-yellow-50 px-4 py-2 rounded-full border border-yellow-200">
+            <span className="text-gray-900 font-medium text-sm">
               {driverData.data.assignedRoute.routeNumber}
             </span>
           </div>
@@ -320,33 +338,33 @@ const DriverPanel = () => {
       {driverData?.data?.assignedRoute ? (
         <div className="space-y-6">
           {/* Route Overview */}
-          <div className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl p-8 text-white">
+          <div className="bg-gradient-to-r from-gray-700 to-gray-800 rounded-2xl p-8 text-white">
             <div className="text-center mb-6">
               <h3 className="text-2xl font-bold mb-2">{driverData.data.assignedRoute.routeName}</h3>
-              <p className="text-blue-100">{driverData.data.assignedRoute.startPoint} → {driverData.data.assignedRoute.endPoint}</p>
+              <p className="text-gray-300">{driverData.data.assignedRoute.startPoint} → {driverData.data.assignedRoute.endPoint}</p>
             </div>
             
             <div className="grid grid-cols-3 gap-6">
               <div className="text-center">
-                <div className="w-16 h-16 bg-white bg-opacity-20 rounded-xl flex items-center justify-center mx-auto mb-3">
-                  <Clock className="text-white" size={28} />
+                <div className="w-16 h-16 bg-yellow-500 bg-opacity-20 rounded-xl flex items-center justify-center mx-auto mb-3">
+                  <Clock className="text-yellow-400" size={28} />
                 </div>
                 <h4 className="text-xl font-bold">{driverData.data.assignedRoute.estimatedTime} min</h4>
-                <p className="text-blue-100 text-sm">Duration</p>
+                <p className="text-gray-300 text-sm">Duration</p>
               </div>
               <div className="text-center">
-                <div className="w-16 h-16 bg-white bg-opacity-20 rounded-xl flex items-center justify-center mx-auto mb-3">
-                  <MapPin className="text-white" size={28} />
+                <div className="w-16 h-16 bg-yellow-500 bg-opacity-20 rounded-xl flex items-center justify-center mx-auto mb-3">
+                  <MapPin className="text-yellow-400" size={28} />
                 </div>
                 <h4 className="text-xl font-bold">{driverData.data.assignedRoute.distance} km</h4>
-                <p className="text-blue-100 text-sm">Distance</p>
+                <p className="text-gray-300 text-sm">Distance</p>
               </div>
               <div className="text-center">
-                <div className="w-16 h-16 bg-white bg-opacity-20 rounded-xl flex items-center justify-center mx-auto mb-3">
-                  <Users className="text-white" size={28} />
+                <div className="w-16 h-16 bg-yellow-500 bg-opacity-20 rounded-xl flex items-center justify-center mx-auto mb-3">
+                  <Users className="text-yellow-400" size={28} />
                 </div>
                 <h4 className="text-xl font-bold">{driverData?.data?.stats?.totalStudents || 0}</h4>
-                <p className="text-blue-100 text-sm">Students</p>
+                <p className="text-gray-300 text-sm">Students</p>
               </div>
             </div>
           </div>
@@ -356,29 +374,29 @@ const DriverPanel = () => {
             {/* Route Information */}
             <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
               <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center">
-                <Settings className="mr-3 text-blue-600" size={20} />
+                <Settings className="mr-3 text-yellow-600" size={20} />
                 Route Details
               </h3>
               
               <div className="space-y-4">
-                <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
-                  <MapPin className="text-green-600" size={18} />
+                <div className="flex items-center space-x-3 p-3 bg-yellow-50 rounded-lg">
+                  <MapPin className="text-yellow-600" size={18} />
                   <div>
                     <p className="font-medium text-gray-900">Start Point</p>
                     <p className="text-gray-600 text-sm">{driverData.data.assignedRoute.startPoint}</p>
                   </div>
                 </div>
                 
-                <div className="flex items-center space-x-3 p-3 bg-red-50 rounded-lg">
-                  <MapPin className="text-red-600" size={18} />
+                <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                  <MapPin className="text-gray-600" size={18} />
                   <div>
                     <p className="font-medium text-gray-900">End Point</p>
                     <p className="text-gray-600 text-sm">{driverData.data.assignedRoute.endPoint}</p>
                   </div>
                 </div>
                 
-                <div className="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg">
-                  <Clock className="text-blue-600" size={18} />
+                <div className="flex items-center space-x-3 p-3 bg-yellow-50 rounded-lg">
+                  <Clock className="text-yellow-600" size={18} />
                   <div>
                     <p className="font-medium text-gray-900">Operating Hours</p>
                     <p className="text-gray-600 text-sm">
@@ -393,10 +411,10 @@ const DriverPanel = () => {
             <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-bold text-gray-900 flex items-center">
-                  <Users className="mr-3 text-green-600" size={20} />
+                  <Users className="mr-3 text-yellow-600" size={20} />
                   Bus Stops
                 </h3>
-                <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-medium">
+                <span className="bg-yellow-100 text-gray-900 px-3 py-1 rounded-full text-xs font-medium">
                   {driverData.data.assignedRoute.stops?.length || 0} stops
                 </span>
               </div>
@@ -404,8 +422,8 @@ const DriverPanel = () => {
               <div className="space-y-3 max-h-64 overflow-y-auto">
                 {driverData.data.assignedRoute.stops?.length > 0 ? (
                   driverData.data.assignedRoute.stops.map((stop, index) => (
-                    <div key={index} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-blue-50 transition-colors">
-                      <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                    <div key={index} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-yellow-50 transition-colors">
+                      <div className="w-8 h-8 bg-yellow-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
                         {index + 1}
                       </div>
                       <div className="flex-1">
@@ -430,25 +448,25 @@ const DriverPanel = () => {
           {/* Quick Stats */}
           <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
             <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center">
-              <CheckCircle className="mr-3 text-purple-600" size={20} />
+              <CheckCircle className="mr-3 text-yellow-600" size={20} />
               Route Summary
             </h3>
             
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="text-center p-4 bg-blue-50 rounded-xl">
-                <div className="text-2xl font-bold text-blue-600">{driverData.data.assignedRoute.stops?.length || 0}</div>
+              <div className="text-center p-4 bg-yellow-50 rounded-xl">
+                <div className="text-2xl font-bold text-gray-900">{driverData.data.assignedRoute.stops?.length || 0}</div>
                 <div className="text-xs text-gray-600 mt-1">Stops</div>
               </div>
-              <div className="text-center p-4 bg-green-50 rounded-xl">
-                <div className="text-2xl font-bold text-green-600">{driverData.data.assignedRoute.distance}</div>
+              <div className="text-center p-4 bg-gray-50 rounded-xl">
+                <div className="text-2xl font-bold text-gray-900">{driverData.data.assignedRoute.distance}</div>
                 <div className="text-xs text-gray-600 mt-1">KM</div>
               </div>
-              <div className="text-center p-4 bg-purple-50 rounded-xl">
-                <div className="text-2xl font-bold text-purple-600">{driverData.data.assignedRoute.estimatedTime}</div>
+              <div className="text-center p-4 bg-yellow-50 rounded-xl">
+                <div className="text-2xl font-bold text-gray-900">{driverData.data.assignedRoute.estimatedTime}</div>
                 <div className="text-xs text-gray-600 mt-1">Minutes</div>
               </div>
-              <div className="text-center p-4 bg-orange-50 rounded-xl">
-                <div className="text-2xl font-bold text-orange-600">{driverData?.data?.stats?.totalStudents || 0}</div>
+              <div className="text-center p-4 bg-gray-50 rounded-xl">
+                <div className="text-2xl font-bold text-gray-900">{driverData?.data?.stats?.totalStudents || 0}</div>
                 <div className="text-xs text-gray-600 mt-1">Students</div>
               </div>
             </div>
@@ -539,9 +557,9 @@ const DriverPanel = () => {
   const renderProfile = () => (
     <div className="space-y-8">
       {/* Profile Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl shadow-xl p-8 text-white">
+      <div className="bg-gradient-to-r from-gray-800 to-gray-900 rounded-2xl shadow-xl p-8 text-white">
         <div className="flex items-center space-x-6">
-          <div className="w-24 h-24 bg-white bg-opacity-20 rounded-full flex items-center justify-center overflow-hidden">
+          <div className="w-24 h-24 bg-yellow-500 bg-opacity-20 rounded-full flex items-center justify-center overflow-hidden">
             {driverData?.data?.driver?.profileImage?.url ? (
               <img
                 src={driverData.data.driver.profileImage.url}
@@ -549,16 +567,16 @@ const DriverPanel = () => {
                 className="w-full h-full object-cover"
               />
             ) : (
-              <User className="text-white" size={40} />
+              <User className="text-yellow-400" size={40} />
             )}
           </div>
           <div>
             <h1 className="text-3xl font-bold">{driverData?.data?.driver?.name || 'Driver Profile'}</h1>
-            <p className="text-blue-100 mt-2 flex items-center">
+            <p className="text-gray-300 mt-2 flex items-center">
               <Mail className="mr-2" size={16} />
               {driverData?.data?.driver?.email}
             </p>
-            <p className="text-blue-100 flex items-center mt-1">
+            <p className="text-gray-300 flex items-center mt-1">
               <Settings className="mr-2" size={16} />
               License: {driverData?.data?.driver?.licenseNumber || 'Not provided'}
             </p>
@@ -572,7 +590,7 @@ const DriverPanel = () => {
           {/* Quick Stats */}
           <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
             <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-              <CheckCircle className="mr-3 text-green-600" size={20} />
+              <CheckCircle className="mr-3 text-yellow-600" size={20} />
               Profile Status
             </h3>
             <div className="space-y-4">
@@ -582,19 +600,19 @@ const DriverPanel = () => {
                   Active
                 </span>
               </div>
-              <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+              <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
                 <span className="text-sm font-medium text-gray-700">Bus Assigned</span>
                 <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                   driverData?.data?.driver?.assignedBus 
-                    ? 'bg-green-100 text-green-800' 
-                    : 'bg-yellow-100 text-yellow-800'
+                    ? 'bg-yellow-100 text-gray-900' 
+                    : 'bg-gray-100 text-gray-900'
                 }`}>
                   {driverData?.data?.driver?.assignedBus?.busNumber || 'Pending'}
                 </span>
               </div>
-              <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <span className="text-sm font-medium text-gray-700">Experience</span>
-                <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-xs font-medium">
+                <span className="bg-gray-100 text-gray-900 px-3 py-1 rounded-full text-xs font-medium">
                   {profileData.experience || '0'} Years
                 </span>
               </div>
@@ -604,7 +622,7 @@ const DriverPanel = () => {
           {/* Contact Information */}
           <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
             <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-              <Phone className="mr-3 text-blue-600" size={20} />
+              <Phone className="mr-3 text-yellow-600" size={20} />
               Contact Info
             </h3>
             <div className="space-y-3">
@@ -644,7 +662,7 @@ const DriverPanel = () => {
           <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-bold text-gray-900 flex items-center">
-                <Settings className="mr-3 text-blue-600" size={24} />
+                <Settings className="mr-3 text-yellow-600" size={24} />
                 Edit Profile Information
               </h3>
               <div className="text-sm text-gray-500">
@@ -766,7 +784,7 @@ const DriverPanel = () => {
                 <button
                   type="submit"
                   disabled={updateLoading}
-                  className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-6 rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                  className="flex-1 bg-gradient-to-r from-gray-700 to-gray-800 text-white py-3 px-6 rounded-lg hover:from-gray-800 hover:to-gray-900 transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
                 >
                   {updateLoading ? (
                     <>
@@ -811,7 +829,7 @@ const DriverPanel = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-900 flex items-center">
-          <MessageSquare className="mr-3 text-blue-600" size={28} />
+          <MessageSquare className="mr-3 text-yellow-600" size={28} />
           Send Notifications
         </h2>
         <div className="text-sm text-gray-500">
@@ -825,7 +843,7 @@ const DriverPanel = () => {
           <div className="lg:col-span-2">
             <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
               <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
-                <Send className="mr-3 text-blue-600" size={24} />
+                <Send className="mr-3 text-yellow-600" size={24} />
                 Compose Notification
               </h3>
 
@@ -867,7 +885,7 @@ const DriverPanel = () => {
                 <button
                   type="submit"
                   disabled={sendingNotification || !notificationMessage.trim()}
-                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-6 rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                  className="w-full bg-gradient-to-r from-gray-700 to-gray-800 text-white py-3 px-6 rounded-lg hover:from-gray-800 hover:to-gray-900 transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
                 >
                   {sendingNotification ? (
                     <>
@@ -890,27 +908,27 @@ const DriverPanel = () => {
             {/* Route Info */}
             <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
               <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-                <Route className="mr-3 text-green-600" size={20} />
+                <Route className="mr-3 text-yellow-600" size={20} />
                 Your Route
               </h3>
               <div className="space-y-3">
-                <div className="p-3 bg-blue-50 rounded-lg">
+                <div className="p-3 bg-yellow-50 rounded-lg">
                   <p className="text-sm font-medium text-gray-700">Bus Number</p>
-                  <p className="text-lg font-bold text-blue-600">
+                  <p className="text-lg font-bold text-gray-900">
                     {driverData.data.driver.assignedBus.busNumber}
                   </p>
                 </div>
                 {driverData.data.assignedRoute && (
-                  <div className="p-3 bg-green-50 rounded-lg">
+                  <div className="p-3 bg-gray-50 rounded-lg">
                     <p className="text-sm font-medium text-gray-700">Route</p>
-                    <p className="text-lg font-bold text-green-600">
+                    <p className="text-lg font-bold text-gray-900">
                       {driverData.data.assignedRoute.routeName}
                     </p>
                   </div>
                 )}
-                <div className="p-3 bg-purple-50 rounded-lg">
+                <div className="p-3 bg-yellow-50 rounded-lg">
                   <p className="text-sm font-medium text-gray-700">Students</p>
-                  <p className="text-lg font-bold text-purple-600">
+                  <p className="text-lg font-bold text-gray-900">
                     {driverData.data.stats.totalStudents} registered
                   </p>
                 </div>
@@ -976,96 +994,66 @@ const DriverPanel = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
+      {/* Mobile Overlay */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        ></div>
+      )}
+
       {/* Sidebar */}
-      <div className="w-64 bg-white shadow-lg border-r border-gray-200 fixed h-full z-10">
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-blue-600 rounded-xl flex items-center justify-center">
-              <span className="text-white text-lg">🚌</span>
-            </div>
-            <div>
-              <h1 className="text-lg font-bold text-gray-900">Driver Portal</h1>
-              <p className="text-xs text-gray-500">Bus Management</p>
-            </div>
-          </div>
-        </div>
-
-        <nav className="mt-6">
-          {tabs.map((tab) => {
-            const Icon = tab.icon;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`w-full flex items-center space-x-3 px-6 py-3 text-left transition-all ${activeTab === tab.id
-                    ? "bg-blue-50 text-blue-600 border-r-2 border-blue-600"
-                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                  }`}
-              >
-                <Icon size={20} />
-                <span className="font-medium">{tab.name}</span>
-              </button>
-            );
-          })}
-        </nav>
-
-        <div className="absolute bottom-6 left-6 right-6">
-          {user && (
-            <div className="mb-3 p-3 bg-gray-50 rounded-lg border">
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden">
-                  {driverData?.data?.driver?.profileImage?.url ? (
-                    <img
-                      src={driverData.data.driver.profileImage.url}
-                      alt="Driver Profile"
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-green-600 rounded-full flex items-center justify-center">
-                      <span className="text-white text-sm font-semibold">
-                        {user.name ? user.name.charAt(0).toUpperCase() : 'D'}
-                      </span>
-                    </div>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">{user.name || 'Driver'}</p>
-                  <p className="text-xs text-gray-500 truncate">{user.email || ''}</p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <button
-            onClick={logout}
-            className="w-full flex items-center space-x-3 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-          >
-            <span>Logout</span>
-          </button>
-        </div>
-      </div>
+      <Sidebar
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        tabs={tabs}
+        activeTab={activeTab}
+        onTabChange={(tabId) => {
+          setActiveTab(tabId);
+          if (window.innerWidth < 1024) {
+            setSidebarOpen(false);
+          }
+        }}
+        user={{ ...user, profileImage: driverData?.data?.driver?.profileImage }}
+        onLogout={logout}
+        title="Driver Portal"
+        subtitle="Bus Management"
+        bgColor="bg-gray-800"
+        accentColor="bg-yellow-500"
+      />
 
       {/* Main Content */}
-      <div className="flex-1 ml-64">
+      <div className={`flex-1 transition-all duration-300 ${sidebarOpen ? 'lg:ml-64' : 'lg:ml-64'} ml-0`}>
         <div className="bg-white shadow-sm border-b border-gray-200">
-          <div className="px-6 py-4">
+          <div className="px-4 lg:px-6 py-4">
             <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 capitalize">{activeTab}</h2>
-                <p className="text-gray-500 text-sm">
-                  {activeTab === 'dashboard' && 'Overview of your driving assignments'}
-                  {activeTab === 'tracking' && 'Live GPS tracking and trip management'}
-                  {activeTab === 'students' && 'Manage your assigned students'}
-                  {activeTab === 'route' && 'View your assigned route details'}
-                  {activeTab === 'notifications' && 'Send notifications to your route students'}
-                  {activeTab === 'profile' && 'Manage your profile settings'}
-                </p>
+              <div className="flex items-center space-x-4">
+                {/* Mobile Menu Button */}
+                <button
+                  onClick={() => setSidebarOpen(!sidebarOpen)}
+                  className="lg:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                </button>
+                <div>
+                  <h2 className="text-xl lg:text-2xl font-bold text-gray-900 capitalize">{activeTab}</h2>
+                  <p className="text-gray-500 text-xs lg:text-sm">
+                    {activeTab === 'dashboard' && 'Overview of your driving assignments'}
+                    {activeTab === 'tracking' && 'Live GPS tracking and trip management'}
+                    {activeTab === 'students' && 'Manage your assigned students'}
+                    {activeTab === 'route' && 'View your assigned route details'}
+                    {activeTab === 'notifications' && 'Send notifications to your route students'}
+                    {activeTab === 'profile' && 'Manage your profile settings'}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="p-6">
+        <div className="p-4 lg:p-6">
           {renderContent()}
         </div>
       </div>

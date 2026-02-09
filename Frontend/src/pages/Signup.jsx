@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { useNavigate, Link } from "react-router-dom";
 import { useSignupMutation } from "../store/apiSlice";
 import { Eye, EyeOff } from "lucide-react";
+import { toast } from 'react-toastify';
 
 export default function Signup() {
   const [formData, setFormData] = useState({
@@ -52,10 +53,10 @@ export default function Signup() {
       // Only send required fields to backend
       const { confirmPassword, ...signupData } = formData;
       await signup(signupData).unwrap();
-      alert("Signup successful! Please verify your email ✅");
+      toast.success("Signup successful! Please verify your email.");
       navigate("/verify-email", { state: { email: formData.email } });
     } catch (err) {
-      alert(err.data?.message || "Signup failed ❌");
+      toast.error(err.data?.message || "Signup failed!");
     }
   };
 

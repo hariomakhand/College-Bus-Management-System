@@ -39,13 +39,13 @@ const DriversTable = ({
           <div style={{
             width: '40px',
             height: '40px',
-            background: '#2563eb',
+            background: '#eab308',
             borderRadius: '8px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center'
           }}>
-            <UserCheck size={20} style={{ color: 'white' }} />
+            <UserCheck size={20} style={{ color: '#1f2937' }} />
           </div>
           <div>
             <h3 style={{
@@ -66,8 +66,8 @@ const DriversTable = ({
         <button
           onClick={() => { setShowModal(true); setModalType('driver'); }}
           style={{
-            background: '#2563eb',
-            color: 'white',
+            background: '#eab308',
+            color: '#1f2937',
             border: 'none',
             padding: window.innerWidth < 640 ? '12px 16px' : '12px 24px',
             borderRadius: '8px',
@@ -81,10 +81,10 @@ const DriversTable = ({
             gap: '8px'
           }}
           onMouseOver={(e) => {
-            e.target.style.backgroundColor = '#1d4ed8';
+            e.target.style.backgroundColor = '#ca8a04';
           }}
           onMouseOut={(e) => {
-            e.target.style.backgroundColor = '#2563eb';
+            e.target.style.backgroundColor = '#eab308';
           }}
         >
           <Plus size={16} />
@@ -102,7 +102,7 @@ const DriversTable = ({
           <Loader2 style={{
             width: '32px',
             height: '32px',
-            color: '#2563eb',
+            color: '#eab308',
             animation: 'spin 1s linear infinite'
           }} />
           <span style={{ marginLeft: '12px', color: '#6b7280' }}>Loading drivers...</span>
@@ -131,8 +131,8 @@ const DriversTable = ({
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
             <thead>
               <tr style={{
-                background: '#f8fafc',
-                borderBottom: '2px solid #e2e8f0'
+                background: 'linear-gradient(135deg, #fef9c3 0%, #fde68a 100%)',
+                borderBottom: '2px solid #fbbf24'
               }}>
                 <th style={{
                   textAlign: 'left',
@@ -181,7 +181,7 @@ const DriversTable = ({
                     transition: 'background-color 0.2s ease'
                   }}
                   onMouseOver={(e) => {
-                    e.currentTarget.style.backgroundColor = '#eff6ff';
+                    e.currentTarget.style.backgroundColor = '#fef3c7';
                   }}
                   onMouseOut={(e) => {
                     e.currentTarget.style.backgroundColor = index % 2 === 0 ? 'white' : '#f9fafb';
@@ -218,8 +218,8 @@ const DriversTable = ({
                         borderRadius: '20px',
                         fontSize: '12px',
                         fontWeight: '500',
-                        backgroundColor: driver.isVerified ? '#dcfce7' : '#fee2e2',
-                        color: driver.isVerified ? '#166534' : '#991b1b'
+                        backgroundColor: driver.isVerified ? '#fde68a' : '#d1d5db',
+                        color: driver.isVerified ? '#78350f' : '#374151'
                       }}>
                         {driver.isVerified ? '✅ Verified' : '⏳ Pending'}
                       </span>
@@ -237,8 +237,8 @@ const DriversTable = ({
                             padding: '4px 8px',
                             borderRadius: '20px',
                             fontSize: '12px',
-                            backgroundColor: '#dcfce7',
-                            color: '#166534',
+                            backgroundColor: '#fde68a',
+                            color: '#78350f',
                             fontWeight: '500',
                             marginBottom: '4px'
                           }}>
@@ -275,7 +275,7 @@ const DriversTable = ({
                           <button
                             onClick={() => handleUnassignBus(driver._id)}
                             style={{
-                              backgroundColor: '#ef4444',
+                              backgroundColor: '#6b7280',
                               color: 'white',
                               border: 'none',
                               padding: '6px 10px',
@@ -291,10 +291,10 @@ const DriversTable = ({
                               justifyContent: 'center'
                             }}
                             onMouseOver={(e) => {
-                              e.target.style.backgroundColor = '#dc2626';
+                              e.target.style.backgroundColor = '#4b5563';
                             }}
                             onMouseOut={(e) => {
-                              e.target.style.backgroundColor = '#ef4444';
+                              e.target.style.backgroundColor = '#6b7280';
                             }}
                           >
                             <UserX size={10} />
@@ -307,8 +307,8 @@ const DriversTable = ({
                               setAssignModal(true);
                             }}
                             style={{
-                              backgroundColor: '#2563eb',
-                              color: 'white',
+                              backgroundColor: '#eab308',
+                              color: '#1f2937',
                               border: 'none',
                               padding: '6px 10px',
                               borderRadius: '6px',
@@ -323,10 +323,10 @@ const DriversTable = ({
                               justifyContent: 'center'
                             }}
                             onMouseOver={(e) => {
-                              e.target.style.backgroundColor = '#1d4ed8';
+                              e.target.style.backgroundColor = '#ca8a04';
                             }}
                             onMouseOut={(e) => {
-                              e.target.style.backgroundColor = '#2563eb';
+                              e.target.style.backgroundColor = '#eab308';
                             }}
                           >
                             <BusIcon size={10} />
@@ -337,9 +337,9 @@ const DriversTable = ({
                         <button
                           onClick={() => deleteUser('drivers', driver._id)}
                           style={{
-                            color: '#dc2626',
+                            color: '#6b7280',
                             backgroundColor: 'transparent',
-                            border: '1px solid #fecaca',
+                            border: '1px solid #d1d5db',
                             padding: '6px 8px',
                             borderRadius: '6px',
                             fontSize: '11px',
@@ -352,12 +352,12 @@ const DriversTable = ({
                             minWidth: '36px'
                           }}
                           onMouseOver={(e) => {
-                            e.target.style.backgroundColor = '#fef2f2';
-                            e.target.style.borderColor = '#f87171';
+                            e.target.style.backgroundColor = '#f3f4f6';
+                            e.target.style.borderColor = '#9ca3af';
                           }}
                           onMouseOut={(e) => {
                             e.target.style.backgroundColor = 'transparent';
-                            e.target.style.borderColor = '#fecaca';
+                            e.target.style.borderColor = '#d1d5db';
                           }}
                         >
                           <Trash2 size={12} />
@@ -369,8 +369,8 @@ const DriversTable = ({
                             setShowDetailModal(true);
                           }}
                           style={{
-                            backgroundColor: '#3b82f6',
-                            color: 'white',
+                            backgroundColor: '#fbbf24',
+                            color: '#1f2937',
                             border: 'none',
                             padding: '6px 10px',
                             borderRadius: '6px',
@@ -384,10 +384,10 @@ const DriversTable = ({
                             minWidth: '60px'
                           }}
                           onMouseOver={(e) => {
-                            e.target.style.backgroundColor = '#2563eb';
+                            e.target.style.backgroundColor = '#f59e0b';
                           }}
                           onMouseOut={(e) => {
-                            e.target.style.backgroundColor = '#3b82f6';
+                            e.target.style.backgroundColor = '#fbbf24';
                           }}
                         >
                           📄 Details
@@ -422,32 +422,32 @@ const DriversTable = ({
             textAlign: 'center'
           }}>
             <div style={{
-              backgroundColor: '#f0fdf4',
+              backgroundColor: '#fef3c7',
               padding: '12px',
               borderRadius: '8px'
             }}>
               <div style={{
                 fontSize: '18px',
                 fontWeight: 'bold',
-                color: '#16a34a'
+                color: '#78350f'
               }}>
                 {drivers.filter(d => d.isVerified).length}
               </div>
-              <div style={{ fontSize: '12px', color: '#15803d' }}>Verified</div>
+              <div style={{ fontSize: '12px', color: '#92400e' }}>Verified</div>
             </div>
             <div style={{
-              backgroundColor: '#fef2f2',
+              backgroundColor: '#f3f4f6',
               padding: '12px',
               borderRadius: '8px'
             }}>
               <div style={{
                 fontSize: '18px',
                 fontWeight: 'bold',
-                color: '#dc2626'
+                color: '#4b5563'
               }}>
                 {drivers.filter(d => !d.isVerified).length}
               </div>
-              <div style={{ fontSize: '12px', color: '#b91c1c' }}>Pending</div>
+              <div style={{ fontSize: '12px', color: '#6b7280' }}>Pending</div>
             </div>
           </div>
         </div>

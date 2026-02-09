@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { useLogout } from "../hooks/useLogout";
 import { useAuth } from "../Context/AuthContext";
-import { BarChart3, Bus, Users, MapPin, UserCheck, LogOut, Home, Link, Menu, X } from 'lucide-react';
+import { BarChart3, Bus, Users, MapPin, UserCheck, Home, Link, Menu, X } from 'lucide-react';
+import Sidebar from '../components/Sidebar';
 import NotificationPanel from '../components/NotificationPanel';
 import AdminStudentManagement from '../components/AdminStudentManagement';
-import { 
-  useGetStatsQuery, 
-  useGetBusesQuery, 
-  useGetDriversQuery, 
+import {
+  useGetStatsQuery,
+  useGetBusesQuery,
+  useGetDriversQuery,
   useGetRoutesQuery,
   useGetStudentsQuery,
   useAddBusMutation,
@@ -52,7 +53,7 @@ export default function AdminPanel() {
   const { data: buses, isLoading: busesLoading, error: busesError } = useGetBusesQuery();
   const { data: drivers, isLoading: driversLoading, error: driversError } = useGetDriversQuery();
   const { data: routes, isLoading: routesLoading, error: routesError } = useGetRoutesQuery();
-  
+
   // Debug logging
   console.log('AdminPanel Data:', { stats, buses, drivers, routes });
   console.log('AdminPanel Errors:', { statsError, busesError, driversError, routesError });
@@ -101,7 +102,7 @@ export default function AdminPanel() {
         message: err.message,
         originalStatus: err.originalStatus
       });
-      
+
       let errorMessage = "Unknown error";
       if (err.data?.message) {
         errorMessage = err.data.message;
@@ -112,7 +113,7 @@ export default function AdminPanel() {
       } else if (err.status) {
         errorMessage = `HTTP ${err.status} Error`;
       }
-      
+
       alert("Failed to add: " + errorMessage);
     }
   };
@@ -207,61 +208,26 @@ export default function AdminPanel() {
     <div className="min-h-screen bg-gray-50 flex">
       {/* Mobile Overlay */}
       {sidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         ></div>
       )}
 
       {/* Sidebar Navigation */}
-      <div className={`w-64 bg-white shadow-lg border-r border-gray-200 fixed h-full z-30 transform transition-transform duration-300 ease-in-out ${
-        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      } lg:translate-x-0`}>
-        {/* Logo */}
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-              <UserCheck className="text-white" size={20} />
-            </div>
-            <div>
-              <h1 className="text-lg font-bold text-gray-900">Admin Panel</h1>
-              <p className="text-xs text-gray-500">Bus Management</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Navigation Menu */}
-        <nav className="mt-6">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`w-full flex items-center space-x-3 px-6 py-3 text-left transition-all ${
-                activeTab === tab.id
-                  ? "bg-blue-50 text-blue-600 border-r-2 border-blue-600"
-                  : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-              }`}
-            >
-              <tab.icon size={20} />
-              <span className="font-medium">{tab.name}</span>
-            </button>
-          ))}
-        </nav>
-
-        {/* User Info & Logout Button */}
-        <div className="absolute bottom-6 left-6 right-6">
-          {/* Logout Button */}
-          <button 
-            onClick={async () => {
-              await logout();
-            }}
-            className="w-full flex items-center space-x-3 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-          >
-            <LogOut size={20} />
-            <span>Logout</span>
-          </button>
-        </div>
-      </div>
+      <Sidebar
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        tabs={tabs}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        user={user}
+        onLogout={logout}
+        title="Admin Panel"
+        subtitle="Bus Management"
+        bgColor="bg-gradient-to-b from-gray-800 to-gray-900"
+        accentColor="bg-yellow-500"
+      />
 
       {/* Main Content */}
       <div className="flex-1 lg:ml-64">
@@ -284,16 +250,16 @@ export default function AdminPanel() {
               </div>
               <div className="flex items-center space-x-2 sm:space-x-4">
                 <NotificationPanel />
-                <button 
+                <button
                   onClick={() => window.location.href = "/"}
                   className="hidden sm:flex items-center px-3 py-2 text-gray-600 hover:text-gray-900 transition-colors text-sm"
                 >
-                  <Home size={16} className="mr-1" /> 
+                  <Home size={16} className="mr-1" />
                   <span className="hidden md:inline">Back to Home</span>
                   <span className="md:hidden">Home</span>
                 </button>
                 {/* Mobile Home Button */}
-                <button 
+                <button
                   onClick={() => window.location.href = "/"}
                   className="sm:hidden p-2 text-gray-600 hover:text-gray-900 transition-colors"
                 >
@@ -313,17 +279,17 @@ export default function AdminPanel() {
 
           {/* Assignments Tab */}
           {activeTab === "assignments" && (
-            <AssignmentOverview 
-              drivers={drivers || []} 
-              buses={buses || []} 
+            <AssignmentOverview
+              drivers={drivers || []}
+              buses={buses || []}
               routes={routes || []}
             />
           )}
 
           {/* Buses Tab */}
           {activeTab === "buses" && (
-            <BusesTable 
-              buses={buses || []} 
+            <BusesTable
+              buses={buses || []}
               loading={busesLoading}
               deleteUser={handleDelete}
               openAddModal={openAddModal}
@@ -332,8 +298,8 @@ export default function AdminPanel() {
 
           {/* Drivers Tab */}
           {activeTab === "drivers" && (
-            <DriversTable 
-              drivers={drivers || []} 
+            <DriversTable
+              drivers={drivers || []}
               buses={buses || []}
               loading={driversLoading}
               setShowModal={setShowAddModal}
@@ -347,8 +313,8 @@ export default function AdminPanel() {
 
           {/* Routes Tab */}
           {activeTab === "routes" && (
-            <RoutesTable 
-              routes={routes || []} 
+            <RoutesTable
+              routes={routes || []}
               loading={routesLoading}
               setShowModal={setShowAddModal}
               setModalType={setModalType}
@@ -358,8 +324,8 @@ export default function AdminPanel() {
 
           {/* Students Tab */}
           {activeTab === "students" && (
-            <StudentsTable 
-              students={students || []} 
+            <StudentsTable
+              students={students || []}
               loading={studentsLoading}
               deleteUser={handleDelete}
               searchTerm={searchTerm}
@@ -377,7 +343,7 @@ export default function AdminPanel() {
 
       {/* Add Modal */}
       {showAddModal && (
-        <AddModal 
+        <AddModal
           showModal={showAddModal}
           modalType={modalType}
           formData={formData}

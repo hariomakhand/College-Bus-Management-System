@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../Context/AuthContext";
 import { useLogout } from "../../hooks/useLogout";
 import busLogo from "../../assets/Buslogo.jpg";
@@ -7,8 +7,19 @@ import busLogo from "../../assets/Buslogo.jpg";
 const Navbar = () => {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const { user } = useAuth();
   const logout = useLogout();
+  const navigate = useNavigate();
+
+  const getDashboardRoute = () => {
+    switch(user?.role) {
+      case 'admin': return '/admin';
+      case 'driver': return '/driver';
+      case 'student': return '/student';
+      default: return '/dashboard';
+    }
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -76,9 +87,12 @@ const Navbar = () => {
           {/* Auth Buttons / User Info */}
           <div className="hidden md:flex items-center space-x-3">
             {user ? (
-              <div className="flex items-center space-x-3">
-                <div className={`flex items-center space-x-2 px-4 py-2 rounded-xl ${scrolled ? 'bg-gray-100' : 'bg-white bg-opacity-20 backdrop-blur-sm'
-                  }`}>
+              <div className="relative">
+                <button
+                  onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-300 hover:scale-105 ${scrolled ? 'bg-gray-100 hover:bg-gray-200' : 'bg-white bg-opacity-20 backdrop-blur-sm hover:bg-opacity-30'
+                  }`}
+                >
                   <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-green-400 rounded-full flex items-center justify-center text-white text-sm font-bold">
                     {user.name?.charAt(0).toUpperCase()}
                   </div>
@@ -92,20 +106,41 @@ const Navbar = () => {
                       {user.role || 'User'}
                     </div>
                   </div>
-                </div>
-                <button
-                  onClick={async () => {
-                    console.log("🖱️ Navbar logout button clicked!");
-                    await logout();
-                    console.log("🏠 Logout complete - no reload");
-                  }}
-                  className={`px-4 py-2 rounded-xl font-semibold transition-all duration-300 hover:scale-105 ${scrolled
-                      ? 'text-gray-700 hover:bg-gray-100'
-                      : 'text-white hover:bg-white hover:bg-opacity-20'
-                    }`}
-                >
-                  Logout
+                  <svg className={`w-4 h-4 transition-transform ${userDropdownOpen ? 'rotate-180' : ''} ${scrolled ? 'text-gray-700' : 'text-white'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
                 </button>
+                
+                {/* Dropdown Menu */}
+                {userDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-200 z-50 overflow-hidden">
+                    <button
+                      onClick={() => {
+                        navigate(getDashboardRoute());
+                        setUserDropdownOpen(false);
+                      }}
+                      className="w-full px-4 py-3 text-left text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors flex items-center space-x-2"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5a2 2 0 012-2h4a2 2 0 012 2v2H8V5z" />
+                      </svg>
+                      <span>Dashboard</span>
+                    </button>
+                    <button
+                      onClick={async () => {
+                        await logout();
+                        setUserDropdownOpen(false);
+                      }}
+                      className="w-full px-4 py-3 text-left text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors flex items-center space-x-2 border-t border-gray-100"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                      </svg>
+                      <span>Logout</span>
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
               <>
@@ -186,13 +221,20 @@ const Navbar = () => {
                     </div>
                   </div>
                   <button
+                    onClick={() => {
+                      navigate(getDashboardRoute());
+                      setOpen(false);
+                    }}
+                    className="block w-full px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 font-semibold rounded-xl transition-all duration-300 text-center"
+                  >
+                    Dashboard
+                  </button>
+                  <button
                     onClick={async () => {
-                      console.log("Mobile logout button clicked!");
                       await logout();
                       setOpen(false);
-                      console.log(" Logout complete - no reload");
                     }}
-                    className="block w-full px-4 py-3 text-gray-700 hover:bg-gray-100 font-semibold rounded-xl transition-all duration-300 text-center"
+                    className="block w-full px-4 py-3 text-gray-700 hover:bg-red-50 hover:text-red-600 font-semibold rounded-xl transition-all duration-300 text-center"
                   >
                     Logout
                   </button>

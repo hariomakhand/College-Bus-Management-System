@@ -101,8 +101,8 @@ const AdminStudentManagement = () => {
               onClick={() => setActiveTab(tab.id)}
               className={`py-2 px-2 sm:px-4 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap flex-shrink-0 ${
                 activeTab === tab.id
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-yellow-500 text-gray-900 bg-yellow-50'
+                  : 'border-transparent text-gray-500 hover:text-gray-900 hover:border-gray-400'
               }`}
             >
               <span className="hidden sm:inline">{tab.name}</span>
@@ -112,7 +112,7 @@ const AdminStudentManagement = () => {
                  tab.id === 'students' ? 'Students' : 'Announce'}
               </span>
               {tab.count > 0 && (
-                <span className="ml-1 sm:ml-2 bg-red-100 text-red-600 py-0.5 px-1 sm:px-2 rounded-full text-xs">
+                <span className="ml-1 sm:ml-2 bg-yellow-200 text-gray-900 py-0.5 px-1 sm:px-2 rounded-full text-xs font-semibold">
                   {tab.count}
                 </span>
               )}
@@ -126,11 +126,11 @@ const AdminStudentManagement = () => {
         <div className="space-y-3 sm:space-y-4">
           {pendingRegistrations.length > 0 ? (
             pendingRegistrations.map((student) => (
-              <div key={student._id} className="bg-white rounded-lg shadow-sm border p-3 sm:p-6">
+              <div key={student._id} className="bg-gray-50 rounded-lg shadow-sm border border-gray-300 p-3 sm:p-6 hover:bg-yellow-50 transition-colors">
                 <div className="flex flex-col gap-3 sm:gap-4">
                   <div className="flex items-start space-x-3 flex-1">
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                      <User className="text-blue-600" size={20} />
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-yellow-100 rounded-full flex items-center justify-center flex-shrink-0">
+                      <User className="text-gray-900" size={20} />
                     </div>
                     <div className="min-w-0 flex-1">
                       <h3 className="text-base sm:text-lg font-semibold text-gray-900 truncate">{student.name}</h3>
@@ -144,7 +144,7 @@ const AdminStudentManagement = () => {
                   <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                     <button
                       onClick={() => handleStudentApproval(student._id, 'approve')}
-                      className="bg-green-600 text-white px-4 py-2.5 sm:py-2 rounded-lg hover:bg-green-700 flex items-center justify-center space-x-2 transition-colors text-sm font-medium"
+                      className="bg-yellow-500 text-gray-900 px-4 py-2.5 sm:py-2 rounded-lg hover:bg-yellow-600 flex items-center justify-center space-x-2 transition-colors text-sm font-medium"
                     >
                       <CheckCircle size={16} />
                       <span>Approve</span>
@@ -154,7 +154,7 @@ const AdminStudentManagement = () => {
                         const reason = prompt('Enter rejection reason:');
                         if (reason) handleStudentApproval(student._id, 'reject', reason);
                       }}
-                      className="bg-red-600 text-white px-4 py-2.5 sm:py-2 rounded-lg hover:bg-red-700 flex items-center justify-center space-x-2 transition-colors text-sm font-medium"
+                      className="bg-gray-500 text-white px-4 py-2.5 sm:py-2 rounded-lg hover:bg-gray-600 flex items-center justify-center space-x-2 transition-colors text-sm font-medium"
                     >
                       <XCircle size={16} />
                       <span>Reject</span>
@@ -177,11 +177,11 @@ const AdminStudentManagement = () => {
         <div className="space-y-3 sm:space-y-4">
           {busRequests.length > 0 ? (
             busRequests.map((student) => (
-              <div key={student._id} className="bg-white rounded-lg shadow-sm border p-3 sm:p-6">
+              <div key={student._id} className="bg-gray-50 rounded-lg shadow-sm border border-gray-300 p-3 sm:p-6 hover:bg-yellow-50 transition-colors">
                 <div className="flex flex-col gap-3 sm:gap-4">
                   <div className="flex items-start space-x-3 flex-1">
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-yellow-100 rounded-full flex items-center justify-center flex-shrink-0">
-                      <Bus className="text-yellow-600" size={20} />
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-yellow-200 rounded-full flex items-center justify-center flex-shrink-0">
+                      <Bus className="text-gray-900" size={20} />
                     </div>
                     <div className="min-w-0 flex-1">
                       <h3 className="text-base sm:text-lg font-semibold text-gray-900 truncate">{student.name}</h3>
@@ -197,7 +197,7 @@ const AdminStudentManagement = () => {
                     <div className="flex flex-col sm:flex-row gap-2">
                       <select
                         id={`bus-select-${student._id}`}
-                        className="border border-gray-300 rounded-lg px-3 py-2 text-sm flex-1 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="border border-gray-400 rounded-lg px-3 py-2 text-sm flex-1 focus:ring-2 focus:ring-yellow-500 focus:border-transparent bg-white"
                         defaultValue=""
                       >
                         <option value="">Select Bus to Assign</option>
@@ -221,7 +221,7 @@ const AdminStudentManagement = () => {
                             alert('Please select a bus first');
                           }
                         }}
-                        className="bg-green-600 text-white px-4 py-2.5 rounded-lg text-sm hover:bg-green-700 transition-colors font-medium flex items-center justify-center space-x-2"
+                        className="bg-yellow-500 text-gray-900 px-4 py-2.5 rounded-lg text-sm hover:bg-yellow-600 transition-colors font-medium flex items-center justify-center space-x-2"
                       >
                         <CheckCircle size={16} />
                         <span>Accept</span>
@@ -232,7 +232,7 @@ const AdminStudentManagement = () => {
                         const reason = prompt('Enter rejection reason:');
                         if (reason) handleBusApproval(student._id, 'reject', null, reason);
                       }}
-                      className="bg-red-600 text-white px-4 py-2.5 rounded-lg text-sm hover:bg-red-700 transition-colors font-medium flex items-center justify-center space-x-2"
+                      className="bg-gray-500 text-white px-4 py-2.5 rounded-lg text-sm hover:bg-gray-600 transition-colors font-medium flex items-center justify-center space-x-2"
                     >
                       <XCircle size={16} />
                       <span>Reject Request</span>
@@ -256,21 +256,21 @@ const AdminStudentManagement = () => {
           {/* Desktop Table */}
           <div className="hidden md:block bg-white rounded-lg shadow overflow-hidden">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+              <thead className="bg-gradient-to-r from-gray-100 to-yellow-100">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Student</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Bus</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Student</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Bus</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Actions</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {students.map((student) => (
-                  <tr key={student._id}>
+                {students.map((student, index) => (
+                  <tr key={student._id} className={index % 2 === 0 ? 'bg-gray-50 hover:bg-yellow-50 transition-colors' : 'bg-white hover:bg-yellow-50 transition-colors'}>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                          <User className="text-blue-600" size={20} />
+                        <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
+                          <User className="text-gray-900" size={20} />
                         </div>
                         <div className="ml-4">
                           <div className="text-sm font-medium text-gray-900">{student.name}</div>
@@ -280,9 +280,9 @@ const AdminStudentManagement = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                        student.status === 'active' ? 'bg-green-100 text-green-800' :
-                        student.status === 'suspended' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-red-100 text-red-800'
+                        student.status === 'active' ? 'bg-yellow-200 text-gray-900' :
+                        student.status === 'suspended' ? 'bg-gray-300 text-gray-900' :
+                        'bg-gray-400 text-white'
                       }`}>
                         {student.status}
                       </span>
@@ -301,7 +301,7 @@ const AdminStudentManagement = () => {
                           }
                         }}
                         value={student.status}
-                        className="border border-gray-300 rounded px-2 py-1"
+                        className="border border-gray-400 rounded px-2 py-1 focus:ring-2 focus:ring-yellow-500"
                       >
                         <option value="active">Active</option>
                         <option value="suspended">Suspended</option>
@@ -317,19 +317,19 @@ const AdminStudentManagement = () => {
           {/* Mobile Cards */}
           <div className="md:hidden space-y-4">
             {students.map((student) => (
-              <div key={student._id} className="bg-white rounded-lg shadow p-4">
+              <div key={student._id} className="bg-gray-50 rounded-lg shadow border border-gray-300 p-4 hover:bg-yellow-50 transition-colors">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                    <User className="text-blue-600" size={20} />
+                  <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
+                    <User className="text-gray-900" size={20} />
                   </div>
                   <div className="flex-1">
                     <div className="font-medium text-gray-900">{student.name}</div>
                     <div className="text-sm text-gray-500">{student.email}</div>
                   </div>
                   <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                    student.status === 'active' ? 'bg-green-100 text-green-800' :
-                    student.status === 'suspended' ? 'bg-yellow-100 text-yellow-800' :
-                    'bg-red-100 text-red-800'
+                    student.status === 'active' ? 'bg-yellow-200 text-gray-900' :
+                    student.status === 'suspended' ? 'bg-gray-300 text-gray-900' :
+                    'bg-gray-400 text-white'
                   }`}>
                     {student.status}
                   </span>
@@ -354,7 +354,7 @@ const AdminStudentManagement = () => {
                     }
                   }}
                   value={student.status}
-                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+                  className="w-full border border-gray-400 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-yellow-500"
                 >
                   <option value="active">Active</option>
                   <option value="suspended">Suspended</option>
@@ -368,8 +368,11 @@ const AdminStudentManagement = () => {
 
       {/* Announcements */}
       {activeTab === 'announcements' && (
-        <div className="bg-white rounded-lg shadow p-4 sm:p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Send Announcement</h3>
+        <div className="bg-gray-50 rounded-lg shadow border border-gray-300 p-4 sm:p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <MessageSquare className="text-yellow-500" size={20} />
+            Send Announcement
+          </h3>
           <form onSubmit={handleAnnouncementSend} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
@@ -377,7 +380,7 @@ const AdminStudentManagement = () => {
                 type="text"
                 value={announcement.title}
                 onChange={(e) => setAnnouncement({...announcement, title: e.target.value})}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full border border-gray-400 rounded-lg px-3 py-2 focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
                 required
               />
             </div>
@@ -387,7 +390,7 @@ const AdminStudentManagement = () => {
                 rows={4}
                 value={announcement.message}
                 onChange={(e) => setAnnouncement({...announcement, message: e.target.value})}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                className="w-full border border-gray-400 rounded-lg px-3 py-2 focus:ring-2 focus:ring-yellow-500 focus:border-transparent resize-none"
                 required
               />
             </div>
@@ -396,7 +399,7 @@ const AdminStudentManagement = () => {
               <select
                 value={announcement.type}
                 onChange={(e) => setAnnouncement({...announcement, type: e.target.value})}
-                className="w-full sm:w-auto border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full sm:w-auto border border-gray-400 rounded-lg px-3 py-2 focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
               >
                 <option value="info">Info</option>
                 <option value="warning">Warning</option>
@@ -406,7 +409,7 @@ const AdminStudentManagement = () => {
             </div>
             <button
               type="submit"
-              className="w-full sm:w-auto bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 flex items-center justify-center space-x-2 transition-colors"
+              className="w-full sm:w-auto bg-yellow-500 text-gray-900 px-6 py-2 rounded-lg hover:bg-yellow-600 flex items-center justify-center space-x-2 transition-colors font-semibold"
             >
               <Send size={16} />
               <span>Send Announcement</span>

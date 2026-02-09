@@ -31,13 +31,13 @@ const RoutesTable = ({
           <div style={{
             width: '40px',
             height: '40px',
-            background: 'linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%)',
-            borderRadius: '50%',
+            background: '#eab308',
+            borderRadius: '8px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center'
           }}>
-            <MapPin size={20} style={{ color: 'white' }} />
+            <MapPin size={20} style={{ color: '#1f2937' }} />
           </div>
           <div>
             <h3 style={{
@@ -58,8 +58,8 @@ const RoutesTable = ({
         <button
           onClick={() => {setShowModal(true); setModalType('route');}}
           style={{
-            background: '#2563eb',
-            color: 'white',
+            background: '#eab308',
+            color: '#1f2937',
             border: 'none',
             padding: window.innerWidth < 640 ? '12px 16px' : '12px 24px',
             borderRadius: '8px',
@@ -73,10 +73,10 @@ const RoutesTable = ({
             gap: '8px'
           }}
           onMouseOver={(e) => {
-            e.target.style.backgroundColor = '#1d4ed8';
+            e.target.style.backgroundColor = '#ca8a04';
           }}
           onMouseOut={(e) => {
-            e.target.style.backgroundColor = '#2563eb';
+            e.target.style.backgroundColor = '#eab308';
           }}
         >
           <Plus size={16} />
@@ -94,7 +94,7 @@ const RoutesTable = ({
           <Loader2 style={{
             width: '32px',
             height: '32px',
-            color: '#2563eb',
+            color: '#eab308',
             animation: 'spin 1s linear infinite'
           }} />
           <span style={{ marginLeft: '12px', color: '#6b7280' }}>Loading routes...</span>
@@ -123,8 +123,8 @@ const RoutesTable = ({
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
             <thead>
               <tr style={{
-                background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
-                borderBottom: '2px solid #93c5fd'
+                background: 'linear-gradient(135deg, #fef9c3 0%, #fde68a 100%)',
+                borderBottom: '2px solid #fbbf24'
               }}>
                 <th style={{
                   textAlign: 'left',
@@ -176,7 +176,7 @@ const RoutesTable = ({
                   transition: 'background-color 0.2s ease'
                 }}
                 onMouseOver={(e) => {
-                  e.currentTarget.style.backgroundColor = '#eff6ff';
+                  e.currentTarget.style.backgroundColor = '#fef3c7';
                 }}
                 onMouseOut={(e) => {
                   e.currentTarget.style.backgroundColor = index % 2 === 0 ? 'white' : '#f9fafb';
@@ -214,7 +214,7 @@ const RoutesTable = ({
                     display: window.innerWidth < 768 ? 'none' : 'table-cell'
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <Users size={12} style={{ color: '#3B82F6' }} />
+                      <Users size={12} style={{ color: '#eab308' }} />
                       <span style={{ fontSize: '12px', fontWeight: '500', color: '#1f2937' }}>
                         {route.stops ? route.stops.split(',').filter(s => s.trim()).length : 0} stops
                       </span>
@@ -230,8 +230,8 @@ const RoutesTable = ({
                       borderRadius: '20px',
                       fontSize: '12px',
                       fontWeight: '500',
-                      backgroundColor: route.status === 'active' ? '#dcfce7' : '#fee2e2',
-                      color: route.status === 'active' ? '#166534' : '#991b1b'
+                      backgroundColor: route.status === 'active' ? '#fde68a' : '#d1d5db',
+                      color: route.status === 'active' ? '#78350f' : '#4b5563'
                     }}>
                       {route.status === 'active' ? 'Active' : 'Inactive'}
                     </span>
@@ -242,9 +242,9 @@ const RoutesTable = ({
                       <button
                         onClick={() => deleteUser('routes', route._id)}
                         style={{
-                          color: '#dc2626',
+                          color: '#6b7280',
                           backgroundColor: 'transparent',
-                          border: '1px solid #fecaca',
+                          border: '1px solid #d1d5db',
                           padding: '6px 10px',
                           borderRadius: '6px',
                           fontSize: '11px',
@@ -258,12 +258,12 @@ const RoutesTable = ({
                           justifyContent: 'center'
                         }}
                         onMouseOver={(e) => {
-                          e.target.style.backgroundColor = '#fef2f2';
-                          e.target.style.borderColor = '#f87171';
+                          e.target.style.backgroundColor = '#f3f4f6';
+                          e.target.style.borderColor = '#9ca3af';
                         }}
                         onMouseOut={(e) => {
                           e.target.style.backgroundColor = 'transparent';
-                          e.target.style.borderColor = '#fecaca';
+                          e.target.style.borderColor = '#d1d5db';
                         }}
                         title="Delete Route"
                       >
@@ -289,32 +289,32 @@ const RoutesTable = ({
             textAlign: 'center'
           }}>
             <div style={{
-              backgroundColor: '#dcfce7',
+              backgroundColor: '#fef3c7',
               padding: '12px',
               borderRadius: '8px'
             }}>
               <div style={{
                 fontSize: '16px',
                 fontWeight: 'bold',
-                color: '#166534'
+                color: '#78350f'
               }}>
                 {routes.filter(r => r.status === 'active').length}
               </div>
-              <div style={{ fontSize: '11px', color: '#15803d' }}>Active Routes</div>
+              <div style={{ fontSize: '11px', color: '#92400e' }}>Active Routes</div>
             </div>
             <div style={{
-              backgroundColor: '#dbeafe',
+              backgroundColor: '#f3f4f6',
               padding: '12px',
               borderRadius: '8px'
             }}>
               <div style={{
                 fontSize: '16px',
                 fontWeight: 'bold',
-                color: '#1d4ed8'
+                color: '#4b5563'
               }}>
                 {routes.reduce((total, route) => total + (route.stops ? route.stops.split(',').filter(s => s.trim()).length : 0), 0)}
               </div>
-              <div style={{ fontSize: '11px', color: '#1d4ed8' }}>Total Stops</div>
+              <div style={{ fontSize: '11px', color: '#6b7280' }}>Total Stops</div>
             </div>
           </div>
         </div>

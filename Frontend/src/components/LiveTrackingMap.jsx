@@ -44,17 +44,45 @@ const LiveTrackingMap = ({ route, busNumber, driverId, socket }) => {
   const [busLocation, setBusLocation] = useState(null);
   const [tripStatus, setTripStatus] = useState('idle');
   const [isTracking, setIsTracking] = useState(false);
+  const [gpsPermission, setGpsPermission] = useState('unknown'); // 'granted', 'denied', 'prompt', 'unknown'
   const watchId = useRef(null);
+  const isTrackingRef = useRef(false); // Use ref to avoid closure issues
   
   // Default center (Sundrel, MP)
   const defaultCenter = [22.8734, 75.8687];
 
+  // Sync ref with state
+  useEffect(() => {
+    isTrackingRef.current = isTracking;
+  }, [isTracking]);
+
+  // Check GPS permission on component mount
+  useEffect(() => {
+    if ('permissions' in navigator) {
+      navigator.permissions.query({ name: 'geolocation' })
+        .then(result => {
+          setGpsPermission(result.state);
+          console.log('GPS Permission:', result.state);
+          
+          // Listen for permission changes
+          result.addEventListener('change', () => {
+            setGpsPermission(result.state);
+            console.log('GPS Permission changed to:', result.state);
+          });
+        })
+        .catch(() => setGpsPermission('unknown'));
+    }
+  }, []);
+
   useEffect(() => {
     return () => {
+      console.log('🧹 Component unmounting - cleaning up tracking...');
       if (watchId.current) {
         if (typeof watchId.current === 'number') {
+          console.log('📍 Cleanup: Clearing GPS watch');
           navigator.geolocation.clearWatch(watchId.current);
         } else {
+          console.log('⏰ Cleanup: Clearing mock interval');
           clearInterval(watchId.current);
         }
         watchId.current = null;
@@ -98,18 +126,22 @@ const LiveTrackingMap = ({ route, busNumber, driverId, socket }) => {
   };
   
   const startLiveTracking = () => {
+    console.log('🚀 Starting live tracking...');
+    
     if (!navigator.geolocation) {
-      alert('GPS not supported, using mock location');
-      startMockTracking();
+      alert('GPS not supported on this device.');
       return;
     }
     
     setTripStatus('active');
     setIsTracking(true);
     
-    // Get current location first
+    console.log('📍 Requesting GPS permission...');
+    
+    // Get current location first with better error handling
     navigator.geolocation.getCurrentPosition(
       (position) => {
+        console.log('✅ GPS permission granted!');
         const initialLocation = {
           lat: position.coords.latitude,
           lng: position.coords.longitude,
@@ -120,7 +152,7 @@ const LiveTrackingMap = ({ route, busNumber, driverId, socket }) => {
           isGPS: true
         };
         
-        console.log('Initial GPS location:', initialLocation);
+        console.log('📍 Initial GPS location:', initialLocation);
         setBusLocation(initialLocation);
         updateLocationToBackend(initialLocation);
         
@@ -139,16 +171,16 @@ const LiveTrackingMap = ({ route, busNumber, driverId, socket }) => {
               isGPS: true
             };
             
-            console.log(`GPS Update: ${latitude}, ${longitude} (±${Math.round(accuracy)}m)`);
+            console.log(`🔄 GPS Update: ${latitude}, ${longitude} (±${Math.round(accuracy)}m)`);
             setBusLocation(newLocation);
             updateLocationToBackend(newLocation);
           },
           (error) => {
-            if (error.code === 3) {
-              return;
+            console.error('❌ GPS tracking error:', error);
+            if (error.code !== 3) { // Not timeout
+              alert('GPS tracking failed. Please check your location settings.');
+              stopTracking();
             }
-            console.error('GPS tracking error:', error);
-            startMockTracking();
           },
           {
             enableHighAccuracy: true,
@@ -158,9 +190,29 @@ const LiveTrackingMap = ({ route, busNumber, driverId, socket }) => {
         );
       },
       (error) => {
-        console.error('Initial GPS error:', error);
-        console.log('Using mock location instead');
-        startMockTracking();
+        console.error('❌ Initial GPS error:', error);
+        
+        // Reset tracking state immediately
+        setTripStatus('idle');
+        setIsTracking(false);
+        
+        let errorMessage = 'GPS access failed. ';
+        
+        switch(error.code) {
+          case 1:
+            errorMessage = 'Location access denied. Please allow location permission in your browser settings and try again.';
+            break;
+          case 2:
+            errorMessage = 'Location unavailable. Please check your GPS settings and try again.';
+            break;
+          case 3:
+            errorMessage = 'Location request timeout. Please try again.';
+            break;
+          default:
+            errorMessage = 'Unknown GPS error occurred. Please try again.';
+        }
+        
+        alert(errorMessage);
       },
       {
         enableHighAccuracy: true,
@@ -222,58 +274,34 @@ const LiveTrackingMap = ({ route, busNumber, driverId, socket }) => {
     );
   };
   
-  const startMockTracking = () => {
-    setTripStatus('active');
-    setIsTracking(true);
-    
-    // Sundrel coordinates
-    let mockLat = 22.8734;
-    let mockLng = 75.8687;
-    
-    const updateMockLocation = () => {
-      // Simulate realistic bus movement in Sundrel area
-      mockLat += (Math.random() - 0.5) * 0.0005; // ~50m movement
-      mockLng += (Math.random() - 0.5) * 0.0005;
-      
-      const mockLocation = {
-        lat: mockLat,
-        lng: mockLng,
-        accuracy: 10,
-        speed: Math.random() * 15, // 0-15 m/s
-        heading: Math.random() * 360,
-        timestamp: new Date().toISOString(),
-        isMock: true,
-        location: 'Sundrel, MP'
-      };
-      
-      setBusLocation(mockLocation);
-      updateLocationToBackend(mockLocation);
-      console.log('Mock location updated (Sundrel):', mockLocation);
-    };
-    
-    // Initial location
-    updateMockLocation();
-    
-    // Update every 2 seconds for smooth movement
-    const mockInterval = setInterval(updateMockLocation, 2000);
-    watchId.current = mockInterval;
-  };
-  
+
   const stopTracking = () => {
-    console.log('Stopping tracking...');
+    // Prevent duplicate stop calls
+    if (!isTracking) {
+      console.log('⚠️ Tracking already stopped');
+      return;
+    }
     
+    console.log('🛑 Stopping tracking...');
+    
+    // Clear watch/interval immediately
     if (watchId.current) {
       if (typeof watchId.current === 'number') {
+        console.log('📍 Clearing GPS watch:', watchId.current);
         navigator.geolocation.clearWatch(watchId.current);
       } else {
+        console.log('⏰ Clearing mock interval:', watchId.current);
         clearInterval(watchId.current);
       }
       watchId.current = null;
     }
     
+    // Update states immediately
     setTripStatus('ended');
     setIsTracking(false);
     setBusLocation(null);
+    
+    console.log('✅ Tracking stopped, states cleared');
     
     // Notify backend to stop tracking
     fetch('http://localhost:5001/api/driver/end-trip', {
@@ -281,12 +309,24 @@ const LiveTrackingMap = ({ route, busNumber, driverId, socket }) => {
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
       body: JSON.stringify({ driverId, busNumber, tripStatus: 'ended' })
-    }).then(() => {
-      console.log('Trip ended successfully');
-    }).catch(console.error);
+    }).then(response => {
+      if (response.ok) {
+        console.log('✅ Backend notified - trip ended');
+      } else {
+        console.error('❌ Failed to notify backend');
+      }
+    }).catch(error => {
+      console.error('❌ Backend notification error:', error);
+    });
   };
   
   const updateLocationToBackend = async (location) => {
+    // Check if tracking is still active before sending
+    if (!isTrackingRef.current) {
+      console.log('⚠️ Tracking stopped - ignoring location update');
+      return;
+    }
+    
     console.log('=== UPDATE LOCATION TO BACKEND ===');
     console.log('Bus Number:', busNumber);
     console.log('Driver ID:', driverId);
@@ -333,6 +373,22 @@ const LiveTrackingMap = ({ route, busNumber, driverId, socket }) => {
 
   return (
     <div className="space-y-4">
+      {/* GPS Instructions */}
+      {!isTracking && gpsPermission === 'denied' && (
+        <div className="p-4 rounded-lg border-l-4 bg-red-50 border-red-400 text-red-700">
+          <div className="flex items-start space-x-2">
+            <MapPin className="mt-0.5 flex-shrink-0" size={16} />
+            <div className="text-sm">
+              <strong>GPS Access Required:</strong> Location permission is needed for tracking.
+              <ol className="mt-2 ml-4 list-decimal space-y-1">
+                <li>Click the location icon in your browser's address bar</li>
+                <li>Select "Allow" for location access</li>
+                <li>Refresh the page and try again</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Controls */}
       <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
         <div className="flex items-center space-x-4">
@@ -344,9 +400,13 @@ const LiveTrackingMap = ({ route, busNumber, driverId, socket }) => {
           </span>
           {busLocation && (
             <span className="text-sm text-gray-500">
-              {busLocation.isMock ? 'Mock Location' : 
-               busLocation.isGPS ? 'Live GPS' : 
-               busLocation.isManual ? 'Manual' : 'GPS'} • {new Date(busLocation.timestamp).toLocaleTimeString()}
+              📡 Live GPS • {new Date(busLocation.timestamp).toLocaleTimeString()}
+            </span>
+          )}
+          {/* GPS Permission Status */}
+          {gpsPermission === 'denied' && (
+            <span className="text-xs px-2 py-1 rounded-full bg-red-100 text-red-700">
+              GPS: ✗ Blocked
             </span>
           )}
         </div>
@@ -355,7 +415,7 @@ const LiveTrackingMap = ({ route, busNumber, driverId, socket }) => {
           {!isTracking ? (
             <button
               onClick={startLiveTracking}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2 font-medium"
             >
               <Play size={16} />
               <span>Start Tracking</span>
@@ -363,7 +423,8 @@ const LiveTrackingMap = ({ route, busNumber, driverId, socket }) => {
           ) : (
             <button
               onClick={stopTracking}
-              className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center space-x-2"
+              title="Stop location tracking"
+              className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center space-x-2 font-medium"
             >
               <Square size={16} />
               <span>Stop Tracking</span>
@@ -439,26 +500,6 @@ const LiveTrackingMap = ({ route, busNumber, driverId, socket }) => {
               <p className="text-gray-900">{Math.round((busLocation.speed || 0) * 3.6)} km/h</p>
             </div>
           </div>
-          
-          {/* Test DB Button */}
-          <button
-            onClick={async () => {
-              try {
-                const response = await fetch(`http://localhost:5001/api/driver/bus-location/${busNumber}`, {
-                  credentials: 'include'
-                });
-                const data = await response.json();
-                console.log('DB Location Check:', data);
-                alert('Check console for DB location data');
-              } catch (error) {
-                console.error('DB check error:', error);
-                alert('Error checking DB: ' + error.message);
-              }
-            }}
-            className="mt-4 w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
-          >
-            Test: Check Location in DB
-          </button>
         </div>
       )}
     </div>

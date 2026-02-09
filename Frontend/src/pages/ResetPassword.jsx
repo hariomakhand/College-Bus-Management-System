@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useParams, useNavigate, Link } from "react-router-dom";
+import { toast } from 'react-toastify';
 
 export default function ResetPassword() {
   const { token } = useParams();
@@ -15,12 +16,14 @@ export default function ResetPassword() {
     e.preventDefault();
 
     if (password !== confirmPassword) {
+      toast.error("Passwords do not match!");
       setMessage("Passwords do not match!");
       setIsSuccess(false);
       return;
     }
 
     if (password.length < 6) {
+      toast.error("Password must be at least 6 characters long!");
       setMessage("Password must be at least 6 characters long!");
       setIsSuccess(false);
       return;
@@ -38,14 +41,17 @@ export default function ResetPassword() {
       const result = await response.json();
       
       if (response.ok) {
+        toast.success("Password reset successful! Redirecting to login...");
         setMessage("Password reset successful! Redirecting to login...");
         setIsSuccess(true);
         setTimeout(() => navigate("/login"), 2000);
       } else {
+        toast.error(result.message || "Failed to reset password");
         setMessage(result.message || "Failed to reset password");
         setIsSuccess(false);
       }
     } catch (err) {
+      toast.error("Something went wrong. Please try again.");
       setMessage("Something went wrong. Please try again.");
       setIsSuccess(false);
     } finally {

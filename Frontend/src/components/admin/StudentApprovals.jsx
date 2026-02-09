@@ -49,13 +49,13 @@ const StudentApprovals = () => {
         <div style={{
           width: '40px',
           height: '40px',
-          background: 'linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%)',
+          background: '#eab308',
           borderRadius: '50%',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center'
         }}>
-          <UserCheck size={20} style={{ color: 'white' }} />
+          <UserCheck size={20} style={{ color: '#1f2937' }} />
         </div>
         <div>
           <h3 style={{
@@ -80,7 +80,7 @@ const StudentApprovals = () => {
           gap: '8px',
           marginBottom: '16px'
         }}>
-          <Clock size={18} style={{ color: '#f59e0b' }} />
+          <Clock size={18} style={{ color: '#eab308' }} />
           <h4 style={{
             fontSize: '16px',
             fontWeight: '600',
@@ -99,9 +99,10 @@ const StudentApprovals = () => {
           <div style={{
             textAlign: 'center',
             padding: '20px',
-            backgroundColor: '#f9fafb',
+            backgroundColor: '#f3f4f6',
             borderRadius: '8px',
-            color: '#6b7280'
+            color: '#6b7280',
+            border: '1px dashed #d1d5db'
           }}>
             No pending registrations
           </div>
@@ -109,11 +110,15 @@ const StudentApprovals = () => {
           <div style={{ display: 'grid', gap: '12px' }}>
             {pendingRegistrations.map((student) => (
               <div key={student._id} style={{
-                border: '1px solid #e5e7eb',
+                border: '1px solid #d1d5db',
                 borderRadius: '8px',
                 padding: '16px',
-                backgroundColor: '#fefefe'
-              }}>
+                backgroundColor: '#f9fafb',
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#fef3c7'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+              >
                 <div style={{
                   display: 'flex',
                   justifyContent: 'space-between',
@@ -148,13 +153,13 @@ const StudentApprovals = () => {
                     <button
                       onClick={() => handleRegistrationAction(student._id, 'approve')}
                       style={{
-                        backgroundColor: '#10b981',
-                        color: 'white',
+                        backgroundColor: '#eab308',
+                        color: '#1f2937',
                         border: 'none',
                         padding: '8px 16px',
                         borderRadius: '6px',
                         fontSize: '12px',
-                        fontWeight: '500',
+                        fontWeight: '600',
                         cursor: 'pointer',
                         display: 'flex',
                         alignItems: 'center',
@@ -170,13 +175,13 @@ const StudentApprovals = () => {
                         if (reason) handleRegistrationAction(student._id, 'reject', reason);
                       }}
                       style={{
-                        backgroundColor: '#ef4444',
+                        backgroundColor: '#6b7280',
                         color: 'white',
                         border: 'none',
                         padding: '8px 16px',
                         borderRadius: '6px',
                         fontSize: '12px',
-                        fontWeight: '500',
+                        fontWeight: '600',
                         cursor: 'pointer',
                         display: 'flex',
                         alignItems: 'center',
@@ -202,7 +207,7 @@ const StudentApprovals = () => {
           gap: '8px',
           marginBottom: '16px'
         }}>
-          <Bus size={18} style={{ color: '#3b82f6' }} />
+          <Bus size={18} style={{ color: '#eab308' }} />
           <h4 style={{
             fontSize: '16px',
             fontWeight: '600',
@@ -221,9 +226,10 @@ const StudentApprovals = () => {
           <div style={{
             textAlign: 'center',
             padding: '20px',
-            backgroundColor: '#f9fafb',
+            backgroundColor: '#f3f4f6',
             borderRadius: '8px',
-            color: '#6b7280'
+            color: '#6b7280',
+            border: '1px dashed #d1d5db'
           }}>
             No pending bus applications
           </div>
@@ -231,11 +237,15 @@ const StudentApprovals = () => {
           <div style={{ display: 'grid', gap: '12px' }}>
             {busRequests.map((student) => (
               <div key={student._id} style={{
-                border: '1px solid #e5e7eb',
+                border: '1px solid #d1d5db',
                 borderRadius: '8px',
                 padding: '16px',
-                backgroundColor: '#fefefe'
-              }}>
+                backgroundColor: '#f9fafb',
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#fef3c7'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+              >
                 <div style={{
                   display: 'flex',
                   justifyContent: 'space-between',
@@ -273,13 +283,13 @@ const StudentApprovals = () => {
                         handleBusRequestAction(student._id, 'approve', busId);
                       }}
                       style={{
-                        backgroundColor: '#10b981',
-                        color: 'white',
+                        backgroundColor: '#eab308',
+                        color: '#1f2937',
                         border: 'none',
                         padding: '8px 16px',
                         borderRadius: '6px',
                         fontSize: '12px',
-                        fontWeight: '500',
+                        fontWeight: '600',
                         cursor: 'pointer',
                         display: 'flex',
                         alignItems: 'center',
@@ -295,13 +305,13 @@ const StudentApprovals = () => {
                         if (reason) handleBusRequestAction(student._id, 'reject', null, reason);
                       }}
                       style={{
-                        backgroundColor: '#ef4444',
+                        backgroundColor: '#6b7280',
                         color: 'white',
                         border: 'none',
                         padding: '8px 16px',
                         borderRadius: '6px',
                         fontSize: '12px',
-                        fontWeight: '500',
+                        fontWeight: '600',
                         cursor: 'pointer',
                         display: 'flex',
                         alignItems: 'center',

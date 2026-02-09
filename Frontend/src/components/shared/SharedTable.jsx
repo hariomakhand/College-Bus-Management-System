@@ -52,7 +52,7 @@ const SharedTable = ({
       {/* Header */}
       <div className="p-6 border-b border-gray-200">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
+          <h2 className="text-xl font-semibold text-gray-800">{title}</h2>
           
           <div className="flex flex-col sm:flex-row gap-3">
             {showSearch && (
@@ -63,7 +63,7 @@ const SharedTable = ({
                   placeholder="Search..."
                   value={searchTerm}
                   onChange={(e) => onSearchChange?.(e.target.value)}
-                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
                 />
               </div>
             )}
@@ -71,7 +71,7 @@ const SharedTable = ({
             {showAddButton && onAdd && (
               <button
                 onClick={onAdd}
-                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="flex items-center px-4 py-2 bg-yellow-500 text-gray-900 rounded-lg hover:bg-yellow-600 transition-colors font-semibold"
               >
                 <Plus size={20} className="mr-2" />
                 {addButtonText}
@@ -84,18 +84,18 @@ const SharedTable = ({
       {/* Table */}
       <div className="overflow-x-auto">
         <table className="w-full">
-          <thead className="bg-gray-50">
+          <thead className="bg-gray-100">
             <tr>
               {columns.map((column, index) => (
                 <th
                   key={index}
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider"
                 >
                   {column.label}
                 </th>
               ))}
               {actions.length > 0 && (
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                   Actions
                 </th>
               )}
@@ -106,7 +106,7 @@ const SharedTable = ({
               <tr>
                 <td colSpan={columns.length + (actions.length > 0 ? 1 : 0)} className="px-6 py-4 text-center">
                   <div className="flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-yellow-500"></div>
                     <span className="ml-2 text-gray-500">Loading...</span>
                   </div>
                 </td>
@@ -131,7 +131,7 @@ const SharedTable = ({
                         {actions.includes('view') && onView && (
                           <button
                             onClick={() => onView(item)}
-                            className="text-blue-600 hover:text-blue-900 p-1 rounded hover:bg-blue-50"
+                            className="text-yellow-600 hover:text-yellow-700 p-1 rounded hover:bg-yellow-50"
                             title="View"
                           >
                             <Eye size={16} />
@@ -140,7 +140,7 @@ const SharedTable = ({
                         {actions.includes('edit') && onEdit && (
                           <button
                             onClick={() => onEdit(item)}
-                            className="text-green-600 hover:text-green-900 p-1 rounded hover:bg-green-50"
+                            className="text-yellow-600 hover:text-yellow-700 p-1 rounded hover:bg-yellow-50"
                             title="Edit"
                           >
                             <Edit size={16} />
@@ -149,7 +149,7 @@ const SharedTable = ({
                         {actions.includes('delete') && onDelete && (
                           <button
                             onClick={() => onDelete(item)}
-                            className="text-red-600 hover:text-red-900 p-1 rounded hover:bg-red-50"
+                            className="text-gray-600 hover:text-red-600 p-1 rounded hover:bg-gray-50"
                             title="Delete"
                           >
                             <Trash2 size={16} />

@@ -113,7 +113,10 @@ const getAllRoutes = async (req, res) => {
 // Get all students with registration requests
 const getAllStudents = async (req, res) => {
   try {
-    const students = await Student.find({ isDeleted: false })
+    const students = await Student.find({ 
+      isDeleted: false,
+      isApproved: true // Only show approved students
+    })
       .populate({
         path: 'busId',
         select: 'busNumber model capacity status',
@@ -194,10 +197,43 @@ const handleStudentRegistration = async (req, res) => {
       if (!student.year) {
         student.year = '1st Year';
       }
+      
+      // Send approval notification
+      await createNotification(
+        student._id,
+        'Registration Approved',
+        'Congratulations! Your student registration has been approved. You can now apply for bus routes.',
+        'success'
+      );
+      
+      // Emit real-time notification
+      if (global.io) {
+        global.io.to(`student-${student._id}`).emit('registrationApproved', {
+          message: 'Your registration has been approved',
+          timestamp: new Date()
+        });
+      }
     } else if (action === 'reject') {
       student.isApproved = false;
       student.isRejected = true;
       student.rejectionReason = reason;
+      
+      // Send rejection notification
+      await createNotification(
+        student._id,
+        'Registration Rejected',
+        `Your student registration has been rejected. Reason: ${reason || 'No reason provided'}. Please update your profile and reapply.`,
+        'error'
+      );
+      
+      // Emit real-time notification
+      if (global.io) {
+        global.io.to(`student-${student._id}`).emit('registrationRejected', {
+          message: 'Your registration has been rejected',
+          reason: reason || 'No reason provided',
+          timestamp: new Date()
+        });
+      }
     }
 
     await student.save({ validateBeforeSave: false });

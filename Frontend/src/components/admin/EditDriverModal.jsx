@@ -74,7 +74,7 @@ const EditDriverModal = ({ driver, onClose, onUpdate }) => {
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-orange-600 to-red-600 px-6 py-4 text-white relative">
+        <div className="bg-gradient-to-r from-gray-700 to-yellow-600 px-6 py-4 text-white relative">
           <button
             onClick={onClose}
             className="absolute top-4 right-4 p-2 hover:bg-white/20 rounded-full transition-colors"
@@ -82,7 +82,7 @@ const EditDriverModal = ({ driver, onClose, onUpdate }) => {
             <X size={20} />
           </button>
           <h2 className="text-2xl font-bold">Edit Driver - {driver.name}</h2>
-          <p className="text-orange-100">Update driver information and documents</p>
+          <p className="text-yellow-100">Update driver information and documents</p>
         </div>
 
         {/* Content */}
@@ -98,7 +98,7 @@ const EditDriverModal = ({ driver, onClose, onUpdate }) => {
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-400 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
                   required
                 />
               </div>
@@ -111,7 +111,7 @@ const EditDriverModal = ({ driver, onClose, onUpdate }) => {
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({...formData, email: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-400 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
                   required
                 />
               </div>
@@ -124,7 +124,7 @@ const EditDriverModal = ({ driver, onClose, onUpdate }) => {
                   type="tel"
                   value={formData.phoneNumber}
                   onChange={(e) => setFormData({...formData, phoneNumber: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-400 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
                 />
               </div>
 
@@ -136,7 +136,7 @@ const EditDriverModal = ({ driver, onClose, onUpdate }) => {
                   type="text"
                   value={formData.licenseNumber}
                   onChange={(e) => setFormData({...formData, licenseNumber: e.target.value.toUpperCase()})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-400 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
                 />
               </div>
 
@@ -148,7 +148,7 @@ const EditDriverModal = ({ driver, onClose, onUpdate }) => {
                   type="date"
                   value={formData.dateOfBirth}
                   onChange={(e) => setFormData({...formData, dateOfBirth: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-400 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
                 />
               </div>
 
@@ -160,7 +160,7 @@ const EditDriverModal = ({ driver, onClose, onUpdate }) => {
                   type="number"
                   value={formData.experience}
                   onChange={(e) => setFormData({...formData, experience: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-400 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
                   min="0"
                   max="50"
                 />
@@ -176,7 +176,7 @@ const EditDriverModal = ({ driver, onClose, onUpdate }) => {
                 value={formData.address}
                 onChange={(e) => setFormData({...formData, address: e.target.value})}
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-400 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
                 placeholder="Enter full address..."
               />
             </div>
@@ -190,7 +190,7 @@ const EditDriverModal = ({ driver, onClose, onUpdate }) => {
                 type="tel"
                 value={formData.emergencyContact}
                 onChange={(e) => setFormData({...formData, emergencyContact: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-400 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
                 placeholder="Emergency contact number"
               />
             </div>
@@ -200,13 +200,13 @@ const EditDriverModal = ({ driver, onClose, onUpdate }) => {
               {/* Profile Image Section */}
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                  <Image className="mr-2 text-orange-600" size={20} />
+                  <Image className="mr-2 text-yellow-600" size={20} />
                   Profile Photo
                 </h3>
 
                 {/* Current Profile Image */}
                 {formData.profileImage?.url && (
-                  <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="mb-4 p-4 bg-yellow-50 border border-yellow-300 rounded-lg">
                     <div className="flex items-center space-x-4">
                       <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-100">
                         <img
@@ -216,8 +216,8 @@ const EditDriverModal = ({ driver, onClose, onUpdate }) => {
                         />
                       </div>
                       <div>
-                        <p className="font-medium text-blue-900">Current Profile Photo</p>
-                        <p className="text-sm text-blue-700">
+                        <p className="font-medium text-gray-900">Current Profile Photo</p>
+                        <p className="text-sm text-gray-700">
                           Uploaded: {formData.profileImage.uploadedAt ? 
                             new Date(formData.profileImage.uploadedAt).toLocaleDateString() : 
                             'Previously uploaded'
@@ -237,7 +237,7 @@ const EditDriverModal = ({ driver, onClose, onUpdate }) => {
                     onUpload={handleProfileImageUpload}
                     accept="image/*"
                     folder="drivers/profiles"
-                    className="border-2 border-dashed border-gray-300 rounded-lg p-4"
+                    className="border-2 border-dashed border-gray-400 rounded-lg p-4"
                   />
                   <p className="text-xs text-gray-500">
                     Supported formats: JPG, PNG, GIF (Max 10MB)
@@ -248,21 +248,21 @@ const EditDriverModal = ({ driver, onClose, onUpdate }) => {
               {/* License Document Section */}
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                  <FileText className="mr-2 text-orange-600" size={20} />
+                  <FileText className="mr-2 text-yellow-600" size={20} />
                   License Document
                 </h3>
 
                 {/* Current License Document */}
                 {formData.licenseDocument?.url && (
-                  <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="mb-4 p-4 bg-yellow-50 border border-yellow-300 rounded-lg">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
-                        <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                          <Image className="text-green-600" size={24} />
+                        <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                          <Image className="text-yellow-600" size={24} />
                         </div>
                         <div>
-                          <p className="font-medium text-green-900">License Document Available</p>
-                          <p className="text-sm text-green-700">
+                          <p className="font-medium text-gray-900">License Document Available</p>
+                          <p className="text-sm text-gray-700">
                             Uploaded: {formData.licenseDocument.uploadedAt ? 
                               new Date(formData.licenseDocument.uploadedAt).toLocaleDateString() : 
                               'Previously uploaded'
@@ -273,7 +273,7 @@ const EditDriverModal = ({ driver, onClose, onUpdate }) => {
                       <button
                         type="button"
                         onClick={() => setShowLicenseImage(true)}
-                        className="flex items-center space-x-2 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                        className="flex items-center space-x-2 px-3 py-2 bg-yellow-500 text-gray-900 rounded-lg hover:bg-yellow-600 transition-colors"
                       >
                         <Eye size={16} />
                         <span>View</span>
@@ -291,7 +291,7 @@ const EditDriverModal = ({ driver, onClose, onUpdate }) => {
                     onUpload={handleLicenseUpload}
                     accept="image/*,application/pdf"
                     folder="drivers/licenses"
-                    className="border-2 border-dashed border-gray-300 rounded-lg p-4"
+                    className="border-2 border-dashed border-gray-400 rounded-lg p-4"
                   />
                   <p className="text-xs text-gray-500">
                     Supported formats: JPG, PNG, PDF (Max 10MB)
@@ -308,18 +308,18 @@ const EditDriverModal = ({ driver, onClose, onUpdate }) => {
             type="button"
             onClick={onClose}
             disabled={loading}
-            className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50"
+            className="px-6 py-2 border border-gray-400 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50"
           >
             Cancel
           </button>
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className="px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors disabled:opacity-50 flex items-center space-x-2"
+            className="px-6 py-2 bg-yellow-500 text-gray-900 rounded-lg hover:bg-yellow-600 transition-colors disabled:opacity-50 flex items-center space-x-2 font-semibold"
           >
             {loading ? (
               <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                <div className="w-4 h-4 border-2 border-gray-900 border-t-transparent rounded-full animate-spin"></div>
                 <span>Updating...</span>
               </>
             ) : (

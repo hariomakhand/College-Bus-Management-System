@@ -158,8 +158,8 @@ const SimpleDriverMap = ({ route, busNumber, driverId, socket }) => {
       <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
         <div className="flex items-center space-x-4">
           <div className={`w-3 h-3 rounded-full ${
-            tripStatus === 'active' ? 'bg-green-500 animate-pulse' : 
-            tripStatus === 'ended' ? 'bg-red-500' : 'bg-gray-400'
+            tripStatus === 'active' ? 'bg-yellow-500 animate-pulse' : 
+            tripStatus === 'ended' ? 'bg-gray-500' : 'bg-gray-400'
           }`}></div>
           <span className="font-medium text-gray-700">
             {tripStatus === 'active' ? 'Trip Active - GPS Tracking' : 
@@ -177,7 +177,7 @@ const SimpleDriverMap = ({ route, busNumber, driverId, socket }) => {
             <>
               <button
                 onClick={startTrip}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
+                className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors flex items-center space-x-2"
               >
                 <Play size={16} />
                 <span>Start Trip</span>
@@ -209,7 +209,7 @@ const SimpleDriverMap = ({ route, busNumber, driverId, socket }) => {
                     }
                   }
                 }}
-                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
               >
                 Manual Location
               </button>
@@ -217,7 +217,7 @@ const SimpleDriverMap = ({ route, busNumber, driverId, socket }) => {
           ) : tripStatus === 'active' ? (
             <button
               onClick={endTrip}
-              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center space-x-2"
+              className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 transition-colors flex items-center space-x-2"
             >
               <Square size={16} />
               <span>End Trip</span>
@@ -225,7 +225,7 @@ const SimpleDriverMap = ({ route, busNumber, driverId, socket }) => {
           ) : (
             <button
               onClick={() => setTripStatus('idle')}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors"
             >
               New Trip
             </button>
@@ -234,9 +234,9 @@ const SimpleDriverMap = ({ route, busNumber, driverId, socket }) => {
       </div>
 
       {/* Map Placeholder */}
-      <div className="h-96 rounded-lg overflow-hidden border bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="h-96 rounded-lg overflow-hidden border bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
         <div className="text-center">
-          <MapPin size={64} className="mx-auto mb-4 text-blue-500" />
+          <MapPin size={64} className="mx-auto mb-4 text-yellow-600" />
           <h3 className="text-xl font-bold text-gray-800 mb-2">GPS Tracking Active</h3>
           <p className="text-gray-600 mb-4">Route: {route?.routeName}</p>
           {busLocation ? (
@@ -244,7 +244,7 @@ const SimpleDriverMap = ({ route, busNumber, driverId, socket }) => {
               <div className="flex items-center justify-between mb-2">
                 <p className="text-sm font-medium text-gray-700">Current Location:</p>
                 {busLocation.isMock && (
-                  <span className="px-2 py-1 bg-orange-100 text-orange-800 text-xs rounded-full">
+                  <span className="px-2 py-1 bg-yellow-100 text-gray-900 text-xs rounded-full">
                     Mock Location (Dewas)
                   </span>
                 )}
@@ -255,15 +255,15 @@ const SimpleDriverMap = ({ route, busNumber, driverId, socket }) => {
               <div className="flex items-center space-x-4 mt-2">
                 {busLocation.accuracy && (
                   <p className={`text-xs ${
-                    busLocation.accuracy <= 20 ? 'text-green-600' :
-                    busLocation.accuracy <= 50 ? 'text-blue-600' :
-                    busLocation.accuracy <= 100 ? 'text-orange-600' : 'text-red-600'
+                    busLocation.accuracy <= 20 ? 'text-yellow-600' :
+                    busLocation.accuracy <= 50 ? 'text-gray-600' :
+                    busLocation.accuracy <= 100 ? 'text-gray-700' : 'text-gray-800'
                   }`}>
                     Accuracy: ±{Math.round(busLocation.accuracy)}m
                   </p>
                 )}
                 {busLocation.speed !== undefined && (
-                  <p className="text-xs text-purple-600">
+                  <p className="text-xs text-gray-600">
                     Speed: {Math.round((busLocation.speed || 0) * 3.6)}km/h
                   </p>
                 )}
@@ -286,24 +286,24 @@ const SimpleDriverMap = ({ route, busNumber, driverId, socket }) => {
       {/* Trip Status */}
       {tripStatus === 'active' && busLocation && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-green-50 p-4 rounded-lg">
+          <div className="bg-yellow-50 p-4 rounded-lg">
             <div className="flex items-center space-x-2 mb-2">
-              <Navigation className="text-green-600" size={20} />
+              <Navigation className="text-yellow-600" size={20} />
               <span className="font-medium text-gray-700">GPS Coordinates</span>
             </div>
             <p className="text-sm text-gray-600">
               {busLocation.lat.toFixed(6)}, {busLocation.lng.toFixed(6)}
               {busLocation.accuracy && (
-                <span className="ml-2 text-blue-600">
+                <span className="ml-2 text-gray-700">
                   (±{Math.round(busLocation.accuracy)}m)
                 </span>
               )}
             </p>
           </div>
           
-          <div className="bg-blue-50 p-4 rounded-lg">
+          <div className="bg-gray-50 p-4 rounded-lg">
             <div className="flex items-center space-x-2 mb-2">
-              <Users className="text-blue-600" size={20} />
+              <Users className="text-gray-600" size={20} />
               <span className="font-medium text-gray-700">Live Sharing</span>
             </div>
             <p className="text-sm text-gray-600">Location shared with students</p>

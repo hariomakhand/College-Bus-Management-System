@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../Context/AuthContext';
 import { useLogout } from '../hooks/useLogout';
+import Sidebar from '../components/Sidebar';
 import { 
   useGetStudentDashboardQuery,
   useUpdateStudentProfileMutation,
@@ -18,6 +19,7 @@ import StudentLocationMap from '../components/StudentLocationMap';
 import StudentNotifications from '../components/StudentNotifications';
 
 const StudentPanel = () => {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [searchTerm, setSearchTerm] = useState('');
   const [supportData, setSupportData] = useState({ subject: '', message: '' });
@@ -162,9 +164,9 @@ const StudentPanel = () => {
 
   if (dashboardLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-600 border-t-transparent mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-yellow-500 border-t-transparent mx-auto mb-4"></div>
           <p className="text-gray-600 font-medium">Loading Dashboard...</p>
         </div>
       </div>
@@ -172,178 +174,355 @@ const StudentPanel = () => {
   }
 
   const renderDashboard = () => (
-    <div className="space-y-8">
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl shadow-xl p-8 text-white">
-        <div className="flex items-center space-x-4">
-          <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center overflow-hidden">
-            {student?.profileImage?.url ? (
-              <img 
-                src={student.profileImage.url} 
-                alt="Profile" 
-                className="w-full h-full object-cover rounded-full"
-              />
-            ) : (
-              <User className="text-white" size={32} />
-            )}
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold">Welcome back, {student?.name || 'Student'}!</h1>
-            <p className="text-blue-100 mt-1">{student?.email} • ID: {student?.studentId || 'STU001'}</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Bus Status</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {student?.busRegistrationStatus === 'approved' ? 'Assigned' : 
-                 student?.busRegistrationStatus === 'pending' ? 'Pending' : 'Not Applied'}
-              </p>
-            </div>
-            <Bus className="text-green-500" size={32} />
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Route</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {student?.assignedRoute?.routeName || 'Not Assigned'}
-              </p>
-            </div>
-            <MapPin className="text-blue-500" size={32} />
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-purple-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Pickup Time</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {student?.assignedRoute?.pickupTime || '8:00 AM'}
-              </p>
-            </div>
-            <Clock className="text-purple-500" size={32} />
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-orange-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Live Tracking</p>
-              <p className="text-lg font-bold text-gray-900">
-                {student?.busRegistrationStatus === 'approved' ? 'Available' : 'Not Available'}
-              </p>
-            </div>
-            <Navigation className="text-orange-500" size={32} />
-          </div>
-        </div>
-      </div>
-
-      {student?.busRegistrationStatus === 'approved' && (
-        <div className="bg-white rounded-2xl shadow-xl p-8">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900 flex items-center">
-              <Bus className="mr-3 text-green-600" size={28} />
-              Your Assigned Bus
-            </h2>
-            <span className="px-4 py-2 bg-green-100 text-green-800 rounded-full text-sm font-medium">
-              ✓ Bus Assigned - Approved
-            </span>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl">
-              <div className="flex items-center space-x-3 mb-3">
-                <Bus className="text-blue-600" size={24} />
-                <span className="text-sm font-medium text-gray-600">Bus Number</span>
+    <div className="space-y-6">
+      {/* Hero Section */}
+      {/* <div className="relative overflow-hidden bg-gradient-to-br from-gray-800 via-gray-900 to-black rounded-3xl shadow-2xl">
+        <div className="absolute inset-0 bg-black/20"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-yellow-500/20 to-yellow-600/20"></div>
+        <div className="relative p-8">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+            <div className="flex items-center gap-6">
+              <div className="relative">
+                <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/30 shadow-xl overflow-hidden">
+                  {student?.profileImage?.url ? (
+                    <img 
+                      src={student.profileImage.url} 
+                      alt="Profile" 
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <User className="text-white" size={32} />
+                  )}
+                </div>
+                <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center border-2 border-white">
+                  <CheckCircle className="text-white" size={16} />
+                </div>
               </div>
-              <p className="text-2xl font-bold text-gray-900">{student?.assignedBus?.busNumber || 'BUS-001'}</p>
-            </div>
-            
-            <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-xl">
-              <div className="flex items-center space-x-3 mb-3">
-                <MapPin className="text-green-600" size={24} />
-                <span className="text-sm font-medium text-gray-600">Route Name</span>
+              <div>
+                <h1 className="text-3xl font-bold text-white mb-2">Welcome back, {student?.name || 'Student'}!</h1>
+                <p className="text-yellow-100 mb-1">{student?.email}</p>
+                <div className="flex items-center gap-2">
+                  <span className="text-yellow-200 text-sm">ID: {student?.studentId || 'STU001'}</span>
+                  <span className="w-1 h-1 bg-yellow-300 rounded-full"></span>
+                  <span className="text-yellow-200 text-sm">{student?.department || 'Department'}</span>
+                </div>
               </div>
-              <p className="text-xl font-bold text-gray-900">{student?.assignedRoute?.routeName || 'Main Campus Route'}</p>
             </div>
-            
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-xl">
-              <div className="flex items-center space-x-3 mb-3">
-                <MapPin className="text-purple-600" size={24} />
-                <span className="text-sm font-medium text-gray-600">Pickup Stop</span>
-              </div>
-              <p className="text-xl font-bold text-gray-900">{student?.preferredPickupStop || 'Main Gate'}</p>
-            </div>
-          </div>
-          
-          {/* Quick Bus Location Preview */}
-          <div className="mt-6 bg-gradient-to-r from-orange-50 to-yellow-50 p-4 rounded-xl border border-orange-200">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                <Navigation className="mr-2 text-orange-600" size={20} />
-                Live Bus Location
-              </h3>
+            <div className="flex flex-col sm:flex-row gap-3">
               <button 
-                onClick={() => setActiveTab('tracking')}
-                className="text-sm text-orange-600 hover:text-orange-700 font-medium"
+                onClick={() => setActiveTab('profile')}
+                className="px-6 py-3 bg-white/20 backdrop-blur-sm text-white rounded-xl hover:bg-white/30 transition-all duration-300 border border-white/30 shadow-lg flex items-center gap-2"
               >
-                View Full Map →
+                <Settings size={16} />
+                <span>Edit Profile</span>
+              </button>
+              {student?.busRegistrationStatus === 'approved' && (
+                <button 
+                  onClick={() => setActiveTab('tracking')}
+                  className="px-6 py-3 bg-yellow-500/90 backdrop-blur-sm text-gray-900 rounded-xl hover:bg-yellow-600/90 transition-all duration-300 shadow-lg flex items-center gap-2 font-semibold"
+                >
+                  <Navigation size={16} />
+                  <span>Track Bus</span>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div> */}
+
+      {/* Status Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="group relative overflow-hidden bg-gradient-to-br from-gray-700 to-gray-800 rounded-2xl p-6 text-white shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105">
+          <div className="absolute inset-0 bg-yellow-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div className="relative z-10">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 bg-yellow-500/20 rounded-xl flex items-center justify-center">
+                <Bus className="text-yellow-400" size={24} />
+              </div>
+              <div className="text-right">
+                <div className="text-2xl font-bold">
+                  {student?.busRegistrationStatus === 'approved' ? 'Assigned' : 
+                   student?.busRegistrationStatus === 'pending' ? 'Pending' : 'Not Applied'}
+                </div>
+                <div className="text-gray-300 text-sm">Bus Status</div>
+              </div>
+            </div>
+            <div className="h-1 bg-gray-600 rounded-full overflow-hidden">
+              <div className={`h-full bg-yellow-400 rounded-full transition-all duration-1000 ${
+                student?.busRegistrationStatus === 'approved' ? 'w-full' :
+                student?.busRegistrationStatus === 'pending' ? 'w-2/3' : 'w-1/3'
+              }`}></div>
+            </div>
+          </div>
+        </div>
+        
+        <div className="group relative overflow-hidden bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-2xl p-6 text-gray-900 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105">
+          <div className="absolute inset-0 bg-gray-900/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div className="relative z-10">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 bg-gray-800/20 rounded-xl flex items-center justify-center">
+                <MapPin className="text-gray-800" size={24} />
+              </div>
+              <div className="text-right">
+                <div className="text-2xl font-bold truncate">
+                  {student?.assignedRoute?.routeName || 'Not Assigned'}
+                </div>
+                <div className="text-gray-800 text-sm">Route</div>
+              </div>
+            </div>
+            <div className="text-gray-800 text-sm">
+              {student?.assignedRoute ? 'Active Route' : 'No Route Assigned'}
+            </div>
+          </div>
+        </div>
+        
+        <div className="group relative overflow-hidden bg-gradient-to-br from-gray-600 to-gray-700 rounded-2xl p-6 text-white shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105">
+          <div className="absolute inset-0 bg-yellow-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div className="relative z-10">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 bg-yellow-500/20 rounded-xl flex items-center justify-center">
+                <Clock className="text-yellow-400" size={24} />
+              </div>
+              <div className="text-right">
+                <div className="text-2xl font-bold">
+                  {student?.assignedRoute?.pickupTime || '8:00 AM'}
+                </div>
+                <div className="text-gray-300 text-sm">Pickup Time</div>
+              </div>
+            </div>
+            <div className="text-gray-300 text-sm">
+              Daily Schedule
+            </div>
+          </div>
+        </div>
+        
+        <div className="group relative overflow-hidden bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-2xl p-6 text-gray-900 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105">
+          <div className="absolute inset-0 bg-gray-900/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div className="relative z-10">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 bg-gray-800/20 rounded-xl flex items-center justify-center">
+                <Navigation className="text-gray-800" size={24} />
+              </div>
+              <div className="text-right">
+                <div className="text-lg font-bold">
+                  {student?.busRegistrationStatus === 'approved' ? 'Available' : 'Not Available'}
+                </div>
+                <div className="text-gray-800 text-sm">Live Tracking</div>
+              </div>
+            </div>
+            <div className="text-gray-800 text-sm">
+              Real-time Location
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      {student?.busRegistrationStatus === 'approved' ? (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Bus Information */}
+          <div className="lg:col-span-2 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+            <div className="bg-gradient-to-r from-yellow-50 to-yellow-100 p-6 border-b border-gray-100">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-yellow-100 rounded-xl flex items-center justify-center">
+                    <Bus className="text-yellow-600" size={20} />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900">Your Assigned Bus</h2>
+                    <p className="text-gray-600 text-sm">Bus service details and information</p>
+                  </div>
+                </div>
+                <span className="px-4 py-2 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                  ✓ Active
+                </span>
+              </div>
+            </div>
+            
+            <div className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Bus Details */}
+                <div className="space-y-4">
+                  <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 p-4 rounded-xl">
+                    <div className="flex items-center gap-3 mb-3">
+                      <Bus className="text-yellow-600" size={20} />
+                      <span className="font-semibold text-gray-900">Bus Information</span>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Bus Number:</span>
+                        <span className="font-bold text-gray-900">{student?.assignedBus?.busNumber || 'BUS-001'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Model:</span>
+                        <span className="font-medium text-gray-900">{student?.assignedBus?.model || 'Volvo B7R'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Capacity:</span>
+                        <span className="font-medium text-gray-900">{student?.assignedBus?.capacity || 45} seats</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Route Details */}
+                  <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-xl">
+                    <div className="flex items-center gap-3 mb-3">
+                      <MapPin className="text-green-600" size={20} />
+                      <span className="font-semibold text-gray-900">Route Information</span>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Route:</span>
+                        <span className="font-bold text-gray-900">{student?.assignedRoute?.routeName || 'Main Campus Route'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Pickup Stop:</span>
+                        <span className="font-medium text-green-700">{student?.preferredPickupStop || 'Main Gate'}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Driver Details */}
+                <div className="space-y-4">
+                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-xl">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
+                        {student?.assignedDriver?.profileImage?.url ? (
+                          <img 
+                            src={student.assignedDriver.profileImage.url} 
+                            alt={student.assignedDriver.name} 
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <User className="text-gray-400" size={16} />
+                        )}
+                      </div>
+                      <span className="font-semibold text-gray-900">Your Driver</span>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Name:</span>
+                        <span className="font-bold text-gray-900">{student?.assignedDriver?.name || 'John Doe'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Phone:</span>
+                        <span className="font-medium text-blue-600">{student?.assignedDriver?.phone || '+1 234 567 8900'}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Quick Actions */}
+                  <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-xl">
+                    <h4 className="font-semibold text-gray-900 mb-3">Quick Actions</h4>
+                    <div className="space-y-2">
+                      <button 
+                        onClick={() => setActiveTab('tracking')}
+                        className="w-full flex items-center gap-2 px-3 py-2 bg-white hover:bg-yellow-50 rounded-lg transition-colors text-sm font-medium text-gray-700"
+                      >
+                        <Navigation size={16} className="text-yellow-600" />
+                        Track Bus Live
+                      </button>
+                      <button 
+                        onClick={() => setActiveTab('support')}
+                        className="w-full flex items-center gap-2 px-3 py-2 bg-white hover:bg-yellow-50 rounded-lg transition-colors text-sm font-medium text-gray-700"
+                      >
+                        <MessageSquare size={16} className="text-yellow-600" />
+                        Contact Support
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Today's Schedule */}
+            <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+              <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-4 border-b border-gray-100">
+                <h3 className="font-bold text-gray-900 flex items-center gap-2">
+                  <Calendar size={16} className="text-gray-700" />
+                  Today's Schedule
+                </h3>
+              </div>
+              <div className="p-4 space-y-3">
+                <div className="flex items-center gap-3 p-3 bg-yellow-50 rounded-lg">
+                  <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                  <div>
+                    <div className="font-medium text-gray-900">Morning Pickup</div>
+                    <div className="text-sm text-gray-600">8:00 AM - Main Gate</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <div>
+                    <div className="font-medium text-gray-900">Evening Drop</div>
+                    <div className="text-sm text-gray-600">5:00 PM - Main Gate</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Recent Activity */}
+            <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+              <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-4 border-b border-gray-100">
+                <h3 className="font-bold text-gray-900 flex items-center gap-2">
+                  <Bell size={16} className="text-gray-700" />
+                  Recent Activity
+                </h3>
+              </div>
+              <div className="p-4 space-y-3">
+                <div className="flex items-start gap-3">
+                  <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
+                  <div>
+                    <div className="text-sm font-medium text-gray-900">Bus application approved</div>
+                    <div className="text-xs text-gray-500">2 hours ago</div>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
+                  <div>
+                    <div className="text-sm font-medium text-gray-900">Driver assigned</div>
+                    <div className="text-xs text-gray-500">1 day ago</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* Not Approved State */
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+          <div className="text-center p-12">
+            <div className="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Bus size={32} className="text-yellow-600" />
+            </div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-4">
+              {student?.busRegistrationStatus === 'pending' ? 'Application Under Review' : 'Get Started with Bus Service'}
+            </h3>
+            <p className="text-gray-600 mb-8 max-w-md mx-auto">
+              {student?.busRegistrationStatus === 'pending' 
+                ? 'Your bus application is being reviewed by our admin team. You will be notified once approved.' 
+                : 'Apply for bus routes to start using our transportation service.'}
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              {student?.busRegistrationStatus !== 'pending' && (
+                <button 
+                  onClick={() => setActiveTab('routes')}
+                  className="px-8 py-3 bg-yellow-500 text-gray-900 rounded-xl hover:bg-yellow-600 transition-colors font-semibold shadow-lg"
+                >
+                  Apply for Bus Route
+                </button>
+              )}
+              <button 
+                onClick={() => setActiveTab('profile')}
+                className="px-8 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors font-medium"
+              >
+                Update Profile
               </button>
             </div>
-            <div className="text-center py-4 text-gray-500">
-              <MapPin size={32} className="mx-auto mb-2 opacity-50" />
-              <p className="text-sm">Click "Track Bus Live" to view real-time location</p>
-            </div>
-          </div>
-          
-          <div className="mt-6 flex space-x-4">
-            <button 
-              onClick={() => setActiveTab('tracking')}
-              className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
-            >
-              Track Bus Live
-            </button>
-            <button 
-              onClick={() => setActiveTab('support')}
-              className="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium"
-            >
-              Contact Support
-            </button>
-          </div>
-        </div>
-      )}
-
-      {student?.busRegistrationStatus !== 'approved' && (
-        <div className="bg-white rounded-2xl shadow-xl p-6">
-          <h3 className="text-lg font-bold text-gray-900 mb-4">Quick Actions</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <button 
-              onClick={() => setActiveTab('routes')}
-              className="flex items-center space-x-3 p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
-            >
-              <FileText className="text-blue-600" size={20} />
-              <span className="text-blue-600 font-medium">Apply for Bus</span>
-            </button>
-            <button 
-              onClick={() => setActiveTab('profile')}
-              className="flex items-center space-x-3 p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors"
-            >
-              <Settings className="text-purple-600" size={20} />
-              <span className="text-purple-600 font-medium">Update Profile</span>
-            </button>
-            <button 
-              onClick={() => setActiveTab('support')}
-              className="flex items-center space-x-3 p-4 bg-green-50 hover:bg-green-100 rounded-lg transition-colors"
-            >
-              <MessageSquare className="text-green-600" size={20} />
-              <span className="text-green-600 font-medium">Get Support</span>
-            </button>
           </div>
         </div>
       )}
@@ -372,7 +551,7 @@ const StudentPanel = () => {
                 placeholder="Search routes..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
               />
             </div>
           )}
@@ -396,9 +575,9 @@ const StudentPanel = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <div className="space-y-6">
-                <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl">
+                <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 p-6 rounded-xl">
                   <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-                    <MapPin className="mr-2 text-blue-600" size={20} />
+                    <MapPin className="mr-2 text-yellow-600" size={20} />
                     Route Information
                   </h4>
                   <div className="space-y-3">
@@ -421,7 +600,7 @@ const StudentPanel = () => {
                     {student?.preferredPickupStop && (
                       <div className="flex justify-between border-t pt-3 mt-3">
                         <span className="text-gray-600">Your Pickup Stop:</span>
-                        <span className="font-medium text-green-700">{student.preferredPickupStop}</span>
+                        <span className="font-medium text-yellow-700">{student.preferredPickupStop}</span>
                       </div>
                     )}
                   </div>
@@ -429,16 +608,16 @@ const StudentPanel = () => {
 
                 {/* Assigned Bus & Driver Info */}
                 {student?.busRegistrationStatus === 'approved' && (student?.assignedBus || student?.assignedDriver) && (
-                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-xl">
+                  <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-6 rounded-xl">
                     <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-                      <Bus className="mr-2 text-purple-600" size={20} />
+                      <Bus className="mr-2 text-gray-700" size={20} />
                       Your Assigned Bus & Driver
                     </h4>
                     <div className="space-y-4">
                       {student?.assignedBus && (
                         <div className="bg-white p-4 rounded-lg border">
                           <div className="flex items-center space-x-3 mb-2">
-                            <Bus className="text-blue-600" size={16} />
+                            <Bus className="text-yellow-600" size={16} />
                             <span className="font-semibold text-gray-700">Bus Details</span>
                           </div>
                           <div className="space-y-1 text-sm">
@@ -460,7 +639,7 @@ const StudentPanel = () => {
                                   className="w-full h-full object-cover"
                                 />
                               ) : (
-                                <User className="text-gray-400" size={16} />
+                                <User className="text-yellow-600" size={16} />
                               )}
                             </div>
                             <span className="font-semibold text-gray-700">Driver Details</span>
@@ -561,7 +740,7 @@ const StudentPanel = () => {
           <>
             {routesLoading ? (
               <div className="bg-white rounded-2xl shadow-xl p-6 text-center">
-                <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-600 border-t-transparent mx-auto mb-4"></div>
+                <div className="animate-spin rounded-full h-16 w-16 border-4 border-yellow-600 border-t-transparent mx-auto mb-4"></div>
                 <p className="text-gray-600">Loading routes...</p>
               </div>
             ) : filteredRoutes.length === 0 ? (
@@ -588,15 +767,15 @@ const StudentPanel = () => {
                     
                     <div className="space-y-4 mb-6">
                       {/* Route Path */}
-                      <div className="bg-blue-50 p-4 rounded-lg">
+                      <div className="bg-yellow-50 p-4 rounded-lg">
                         <div className="flex items-center space-x-2 mb-2">
-                          <MapPin className="text-blue-600" size={16} />
+                          <MapPin className="text-yellow-600" size={16} />
                           <span className="text-sm font-semibold text-gray-700">Route Path</span>
                         </div>
                         <div className="text-sm text-gray-800">
-                          <span className="font-medium text-blue-700">{route.startPoint}</span>
+                          <span className="font-medium text-yellow-700">{route.startPoint}</span>
                           <span className="mx-2 text-gray-400">→</span>
-                          <span className="font-medium text-green-700">{route.endPoint}</span>
+                          <span className="font-medium text-gray-700">{route.endPoint}</span>
                         </div>
                       </div>
 
@@ -604,14 +783,14 @@ const StudentPanel = () => {
                       <div className="grid grid-cols-2 gap-3">
                         <div className="bg-gray-50 p-3 rounded-lg">
                           <div className="flex items-center space-x-2">
-                            <Clock className="text-green-600" size={14} />
+                            <Clock className="text-gray-700" size={14} />
                             <span className="text-xs font-medium text-gray-600">Duration</span>
                           </div>
                           <p className="text-sm font-bold text-gray-900 mt-1">{route.estimatedTime || 30} mins</p>
                         </div>
                         <div className="bg-gray-50 p-3 rounded-lg">
                           <div className="flex items-center space-x-2">
-                            <MapPin className="text-purple-600" size={14} />
+                            <MapPin className="text-gray-700" size={14} />
                             <span className="text-xs font-medium text-gray-600">Distance</span>
                           </div>
                           <p className="text-sm font-bold text-gray-900 mt-1">{route.distance || 15} km</p>
@@ -687,10 +866,10 @@ const StudentPanel = () => {
                         handleBusApplication(route._id);
                       }}
                       disabled={applyLoading || !student?.isApproved}
-                      className={`w-full py-3 px-4 rounded-lg transition-colors font-medium ${
+                      className={`w-full py-3 px-4 rounded-lg transition-colors font-semibold ${
                         !student?.isApproved 
                           ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
-                          : 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl'
+                          : 'bg-yellow-500 text-gray-900 hover:bg-yellow-600 shadow-lg hover:shadow-xl'
                       } disabled:opacity-50`}
                     >
                       {!student?.isApproved 
@@ -803,7 +982,7 @@ const StudentPanel = () => {
             </p>
             <button 
               onClick={() => setActiveTab('routes')}
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="px-6 py-3 bg-yellow-500 text-gray-900 rounded-lg hover:bg-yellow-600 transition-colors font-semibold"
             >
               {student?.busRegistrationStatus === 'pending' ? 'View Application Status' : 'Apply for Bus Route'}
             </button>
@@ -854,15 +1033,15 @@ const StudentPanel = () => {
         <div className="bg-white rounded-2xl shadow-xl p-6">
           <h3 className="text-lg font-bold text-gray-900 mb-4">Contact Support</h3>
           <div className="space-y-4">
-            <div className="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg">
-              <Phone className="text-blue-600" size={20} />
+            <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+              <Phone className="text-yellow-600" size={20} />
               <div>
                 <p className="font-medium text-gray-900">Phone Support</p>
                 <p className="text-sm text-gray-600">+1 (555) 123-4567</p>
               </div>
             </div>
-            <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
-              <Mail className="text-green-600" size={20} />
+            <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+              <Mail className="text-yellow-600" size={20} />
               <div>
                 <p className="font-medium text-gray-900">Email Support</p>
                 <p className="text-sm text-gray-600">support@busservice.com</p>
@@ -881,7 +1060,7 @@ const StudentPanel = () => {
                 value={supportData.subject}
                 onChange={(e) => setSupportData({...supportData, subject: e.target.value})}
                 placeholder="Enter subject" 
-                className="w-full p-3 border border-gray-300 rounded-lg" 
+                className="w-full p-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500" 
                 required
               />
             </div>
@@ -892,14 +1071,14 @@ const StudentPanel = () => {
                 value={supportData.message}
                 onChange={(e) => setSupportData({...supportData, message: e.target.value})}
                 placeholder="Enter your message" 
-                className="w-full p-3 border border-gray-300 rounded-lg"
+                className="w-full p-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
                 required
               />
             </div>
             <button 
               type="submit"
               disabled={supportLoading}
-              className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+              className="w-full bg-yellow-500 text-white py-3 rounded-lg hover:bg-yellow-600 transition-colors disabled:opacity-50 font-semibold"
             >
               {supportLoading ? 'Sending...' : 'Send Message'}
             </button>
@@ -923,91 +1102,57 @@ const StudentPanel = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      <div className="w-64 bg-white shadow-lg border-r border-gray-200 fixed h-full z-10">
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
-              <span className="text-white text-lg">🎓</span>
-            </div>
-            <div>
-              <h1 className="text-lg font-bold text-gray-900">Student Portal</h1>
-              <p className="text-xs text-gray-500">Bus Management</p>
-            </div>
-          </div>
-        </div>
+      {/* Mobile Sidebar Overlay */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+      
+      {/* Sidebar */}
+      <Sidebar
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        tabs={tabs}
+        activeTab={activeTab}
+        onTabChange={(tabId) => {
+          setActiveTab(tabId);
+          setSidebarOpen(false);
+        }}
+        user={{ ...user, profileImage: student?.profileImage }}
+        onLogout={logout}
+        title="Student Portal"
+        subtitle="Bus Management"
+        bgColor="bg-gray-800"
+        accentColor="bg-yellow-500"
+      />
 
-        <nav className="mt-6">
-          {tabs.map((tab) => {
-            const Icon = tab.icon;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`w-full flex items-center space-x-3 px-6 py-3 text-left transition-all ${
-                  activeTab === tab.id
-                    ? "bg-blue-50 text-blue-600 border-r-2 border-blue-600"
-                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                }`}
-              >
-                <Icon size={20} />
-                <span className="font-medium">{tab.name}</span>
-              </button>
-            );
-          })}
-        </nav>
-
-        <div className="absolute bottom-6 left-6 right-6">
-          {user && (
-            <div className="mb-3 p-3 bg-gray-50 rounded-lg border">
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center overflow-hidden">
-                  {student?.profileImage?.url ? (
-                    <img 
-                      src={student.profileImage.url} 
-                      alt="Profile" 
-                      className="w-full h-full object-cover rounded-full"
-                    />
-                  ) : (
-                    <span className="text-white text-sm font-semibold">
-                      {user.name ? user.name.charAt(0).toUpperCase() : 'S'}
-                    </span>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">
-                    {user.name || 'Student'}
-                  </p>
-                  <p className="text-xs text-gray-500 truncate">
-                    {user.email || ''}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-          
-          <button 
-            onClick={logout}
-            className="w-full flex items-center space-x-3 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-          >
-            <span>Logout</span>
-          </button>
-        </div>
-      </div>
-
-      <div className="flex-1 ml-64">
+      <div className="flex-1 lg:ml-64">
         <div className="bg-white shadow-sm border-b border-gray-200">
           <div className="px-6 py-4">
             <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 capitalize">{activeTab}</h2>
-                <p className="text-gray-500 text-sm">
-                  {activeTab === 'dashboard' && 'Overview of your bus service'}
-                  {activeTab === 'routes' && 'Browse available bus routes'}
-                  {activeTab === 'tracking' && 'Track your bus in real-time'}
-                  {activeTab === 'schedule' && 'View your weekly schedule'}
-                  {activeTab === 'profile' && 'Manage your profile settings'}
-                  {activeTab === 'support' && 'Get help and support'}
-                </p>
+              <div className="flex items-center space-x-4">
+                {/* Mobile Menu Button */}
+                <button
+                  onClick={() => setSidebarOpen(!sidebarOpen)}
+                  className="lg:hidden p-2 rounded-lg text-gray-600 hover:bg-yellow-50"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                </button>
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900 capitalize">{activeTab}</h2>
+                  <p className="text-gray-500 text-sm">
+                    {activeTab === 'dashboard' && 'Overview of your bus service'}
+                    {activeTab === 'routes' && 'Browse available bus routes'}
+                    {activeTab === 'tracking' && 'Track your bus in real-time'}
+                    {activeTab === 'schedule' && 'View your weekly schedule'}
+                    {activeTab === 'profile' && 'Manage your profile settings'}
+                    {activeTab === 'support' && 'Get help and support'}
+                  </p>
+                </div>
               </div>
               <div className="flex items-center space-x-4">
                 <StudentNotifications />

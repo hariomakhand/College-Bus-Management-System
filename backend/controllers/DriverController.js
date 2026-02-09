@@ -111,31 +111,49 @@ const endTrip = async (req, res) => {
   try {
     const { driverId, busNumber } = req.body;
     
-    // Remove from active locations
+    console.log(`🛑 Ending trip for bus ${busNumber}, driver ${driverId}`);
+    
+    // Remove from active locations immediately
+    const wasActive = activeBusLocations.has(busNumber);
     activeBusLocations.delete(busNumber);
+    
+    console.log(`📋 Active location ${wasActive ? 'removed' : 'was not active'} for bus ${busNumber}`);
     
     // Emit trip end to students
     if (global.io) {
+      console.log(`📡 Emitting tripEnded to room bus-${busNumber}`);
       global.io.to(`bus-${busNumber}`).emit('tripEnded', {
         busNumber,
-        message: 'Trip has ended'
+        message: 'Trip has ended',
+        timestamp: new Date()
       });
     }
     
-    // Update bus status
-    await Bus.findOneAndUpdate(
+    // Update bus status in database
+    const updateResult = await Bus.findOneAndUpdate(
       { busNumber },
       { 
         tripStatus: 'ended',
-        lastLocationUpdate: new Date()
-      }
+        lastLocationUpdate: new Date(),
+        currentLocation: null // Clear current location
+      },
+      { new: true }
     );
+    
+    if (updateResult) {
+      console.log(`✅ Database updated - trip ended for bus ${busNumber}`);
+    } else {
+      console.log(`⚠️ Bus ${busNumber} not found in database`);
+    }
 
     res.json({
       success: true,
-      message: 'Trip ended successfully'
+      message: 'Trip ended successfully',
+      busNumber,
+      wasTracking: wasActive
     });
   } catch (error) {
+    console.error('❌ End trip error:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 };

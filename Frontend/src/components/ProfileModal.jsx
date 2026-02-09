@@ -115,7 +115,7 @@ const ProfileModal = ({ isOpen, onClose, userData, onSave, isLoading }) => {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 text-white">
+        <div className="bg-gradient-to-r from-gray-700 to-gray-900 px-6 py-4 text-white">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-3">
               <User size={24} />
@@ -136,7 +136,7 @@ const ProfileModal = ({ isOpen, onClose, userData, onSave, isLoading }) => {
             {/* Profile Image Upload */}
             <div className="text-center">
               <label className="flex items-center justify-center gap-2 text-sm font-bold text-gray-700 mb-4">
-                <Camera size={16} className="text-blue-600" />
+                <Camera size={16} className="text-yellow-600" />
                 Profile Photo
               </label>
               <div className="flex flex-col items-center space-y-4">
@@ -150,7 +150,7 @@ const ProfileModal = ({ isOpen, onClose, userData, onSave, isLoading }) => {
                   )}
                 </div>
                 <div className="flex space-x-2">
-                  <label className="cursor-pointer px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm flex items-center gap-2">
+                  <label className="cursor-pointer px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors text-sm flex items-center gap-2">
                     <Upload size={16} />
                     Choose Photo
                     <input
@@ -165,7 +165,7 @@ const ProfileModal = ({ isOpen, onClose, userData, onSave, isLoading }) => {
                       type="button"
                       onClick={uploadProfileImage}
                       disabled={uploadingImage}
-                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm disabled:opacity-50"
+                      className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm disabled:opacity-50"
                     >
                       {uploadingImage ? 'Uploading...' : 'Upload'}
                     </button>
@@ -176,7 +176,7 @@ const ProfileModal = ({ isOpen, onClose, userData, onSave, isLoading }) => {
             {/* Name */}
             <div>
               <label className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-2">
-                <User size={16} className="text-blue-600" />
+                <User size={16} className="text-yellow-600" />
                 Full Name *
               </label>
               <input 
@@ -184,8 +184,8 @@ const ProfileModal = ({ isOpen, onClose, userData, onSave, isLoading }) => {
                 value={formData.name}
                 onChange={(e) => setFormData({...formData, name: e.target.value})}
                 placeholder="Enter your full name" 
-                className={`w-full p-3 border-2 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.name ? 'border-red-400 bg-red-50' : 'border-gray-300 focus:border-blue-500'
+                className={`w-full p-3 border-2 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-yellow-500 ${
+                  errors.name ? 'border-red-400 bg-red-50' : 'border-gray-300 focus:border-yellow-500'
                 }`}
               />
               {errors.name && (
@@ -199,7 +199,7 @@ const ProfileModal = ({ isOpen, onClose, userData, onSave, isLoading }) => {
             {/* Email (Read-only) */}
             <div>
               <label className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-2">
-                <Mail size={16} className="text-blue-600" />
+                <Mail size={16} className="text-yellow-600" />
                 Email Address
               </label>
               <div className="p-3 bg-gray-100 border-2 border-gray-200 rounded-lg">
@@ -211,7 +211,7 @@ const ProfileModal = ({ isOpen, onClose, userData, onSave, isLoading }) => {
             {/* Phone */}
             <div>
               <label className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-2">
-                <Phone size={16} className="text-blue-600" />
+                <Phone size={16} className="text-yellow-600" />
                 Phone Number
               </label>
               <input 
@@ -219,8 +219,8 @@ const ProfileModal = ({ isOpen, onClose, userData, onSave, isLoading }) => {
                 value={formData.phone}
                 onChange={(e) => setFormData({...formData, phone: e.target.value})}
                 placeholder="+1234567890" 
-                className={`w-full p-3 border-2 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.phone ? 'border-red-400 bg-red-50' : 'border-gray-300 focus:border-blue-500'
+                className={`w-full p-3 border-2 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-yellow-500 ${
+                  errors.phone ? 'border-red-400 bg-red-50' : 'border-gray-300 focus:border-yellow-500'
                 }`}
               />
               {errors.phone && (
@@ -234,14 +234,14 @@ const ProfileModal = ({ isOpen, onClose, userData, onSave, isLoading }) => {
             {/* Department */}
             <div>
               <label className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-2">
-                <Settings size={16} className="text-blue-600" />
+                <Settings size={16} className="text-yellow-600" />
                 Department *
               </label>
               <select 
                 value={formData.department}
                 onChange={(e) => setFormData({...formData, department: e.target.value})}
-                className={`w-full p-3 border-2 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.department ? 'border-red-400 bg-red-50' : 'border-gray-300 focus:border-blue-500'
+                className={`w-full p-3 border-2 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-yellow-500 ${
+                  errors.department ? 'border-red-400 bg-red-50' : 'border-gray-300 focus:border-yellow-500'
                 }`}
               >
                 <option value="">Select Department</option>
@@ -260,13 +260,13 @@ const ProfileModal = ({ isOpen, onClose, userData, onSave, isLoading }) => {
             {/* Year */}
             <div>
               <label className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-2">
-                <Calendar size={16} className="text-blue-600" />
+                <Calendar size={16} className="text-yellow-600" />
                 Academic Year
               </label>
               <select 
                 value={formData.year}
                 onChange={(e) => setFormData({...formData, year: e.target.value})}
-                className="w-full p-3 border-2 border-gray-300 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full p-3 border-2 border-gray-300 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
               >
                 <option value="">Select Year</option>
                 <option value="1st Year">1st Year</option>
@@ -279,7 +279,7 @@ const ProfileModal = ({ isOpen, onClose, userData, onSave, isLoading }) => {
             {/* Address */}
             <div>
               <label className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-2">
-                <Home size={16} className="text-blue-600" />
+                <Home size={16} className="text-yellow-600" />
                 Home Address
               </label>
               <textarea 
@@ -287,7 +287,7 @@ const ProfileModal = ({ isOpen, onClose, userData, onSave, isLoading }) => {
                 value={formData.address}
                 onChange={(e) => setFormData({...formData, address: e.target.value})}
                 placeholder="Enter your complete address" 
-                className="w-full p-3 border-2 border-gray-300 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                className="w-full p-3 border-2 border-gray-300 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 resize-none"
               />
             </div>
 
@@ -302,7 +302,7 @@ const ProfileModal = ({ isOpen, onClose, userData, onSave, isLoading }) => {
                 value={formData.emergencyContact}
                 onChange={(e) => setFormData({...formData, emergencyContact: e.target.value})}
                 placeholder="Emergency contact number" 
-                className="w-full p-3 border-2 border-gray-300 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full p-3 border-2 border-gray-300 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
               />
             </div>
           </div>
@@ -319,7 +319,7 @@ const ProfileModal = ({ isOpen, onClose, userData, onSave, isLoading }) => {
             <button
               type="submit"
               disabled={isLoading}
-              className="flex-1 py-3 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="flex-1 py-3 px-4 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isLoading ? (
                 <>

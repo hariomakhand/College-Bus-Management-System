@@ -80,8 +80,8 @@ const AddModal = ({ showModal, modalType, formData, setFormData, handleAddItem, 
               placeholder="Bus Number (e.g., BUS001)"
               value={formData.busNumber || ""}
               onChange={(e) => setFormData({...formData, busNumber: e.target.value.toUpperCase()})}
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                errors.busNumber ? 'border-red-500' : 'border-gray-300'
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent ${
+                errors.busNumber ? 'border-red-500' : 'border-gray-400'
               }`}
             />
             {renderError('busNumber')}
@@ -93,8 +93,8 @@ const AddModal = ({ showModal, modalType, formData, setFormData, handleAddItem, 
               placeholder="Bus Model (e.g., Volvo B7R)"
               value={formData.model || ""}
               onChange={(e) => setFormData({...formData, model: e.target.value})}
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                errors.model ? 'border-red-500' : 'border-gray-300'
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent ${
+                errors.model ? 'border-red-500' : 'border-gray-400'
               }`}
             />
             {renderError('model')}
@@ -106,8 +106,8 @@ const AddModal = ({ showModal, modalType, formData, setFormData, handleAddItem, 
               placeholder="Registration Number"
               value={formData.registrationNumber || ""}
               onChange={(e) => setFormData({...formData, registrationNumber: e.target.value.toUpperCase()})}
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                errors.registrationNumber ? 'border-red-500' : 'border-gray-300'
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent ${
+                errors.registrationNumber ? 'border-red-500' : 'border-gray-400'
               }`}
             />
             {renderError('registrationNumber')}
@@ -122,8 +122,8 @@ const AddModal = ({ showModal, modalType, formData, setFormData, handleAddItem, 
                 const value = e.target.value;
                 setFormData({...formData, capacity: value ? parseInt(value) : undefined});
               }}
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                errors.capacity ? 'border-red-500' : 'border-gray-300'
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent ${
+                errors.capacity ? 'border-red-500' : 'border-gray-400'
               }`}
               min="10"
               max="100"
@@ -140,7 +140,7 @@ const AddModal = ({ showModal, modalType, formData, setFormData, handleAddItem, 
                 const value = e.target.value;
                 setFormData({...formData, manufacturingYear: value ? parseInt(value) : undefined});
               }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-400 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
               min="2000"
               max={new Date().getFullYear()}
             />
@@ -149,7 +149,7 @@ const AddModal = ({ showModal, modalType, formData, setFormData, handleAddItem, 
           <select
             value={formData.status || "active"}
             onChange={(e) => setFormData({...formData, status: e.target.value})}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-gray-400 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
           >
             <option value="active">Active</option>
             <option value="maintenance">Maintenance</option>
@@ -168,8 +168,8 @@ const AddModal = ({ showModal, modalType, formData, setFormData, handleAddItem, 
               placeholder="Full Name"
               value={formData.name || ""}
               onChange={(e) => setFormData({...formData, name: e.target.value})}
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
-                errors.name ? 'border-red-500' : 'border-gray-300'
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent ${
+                errors.name ? 'border-red-500' : 'border-gray-400'
               }`}
             />
             {renderError('name')}
@@ -181,8 +181,8 @@ const AddModal = ({ showModal, modalType, formData, setFormData, handleAddItem, 
               placeholder="Email Address"
               value={formData.email || ""}
               onChange={(e) => setFormData({...formData, email: e.target.value.toLowerCase()})}
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
-                errors.email ? 'border-red-500' : 'border-gray-300'
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent ${
+                errors.email ? 'border-red-500' : 'border-gray-400'
               }`}
             />
             {renderError('email')}
@@ -194,8 +194,8 @@ const AddModal = ({ showModal, modalType, formData, setFormData, handleAddItem, 
               placeholder="Password (min 6 characters)"
               value={formData.password || ""}
               onChange={(e) => setFormData({...formData, password: e.target.value})}
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
-                errors.password ? 'border-red-500' : 'border-gray-300'
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent ${
+                errors.password ? 'border-red-500' : 'border-gray-400'
               }`}
             />
             {renderError('password')}
@@ -207,8 +207,8 @@ const AddModal = ({ showModal, modalType, formData, setFormData, handleAddItem, 
               placeholder="License Number (optional)"
               value={formData.licenseNumber || ""}
               onChange={(e) => setFormData({...formData, licenseNumber: e.target.value.toUpperCase()})}
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
-                errors.licenseNumber ? 'border-red-500' : 'border-gray-300'
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent ${
+                errors.licenseNumber ? 'border-red-500' : 'border-gray-400'
               }`}
             />
             {renderError('licenseNumber')}
@@ -220,8 +220,8 @@ const AddModal = ({ showModal, modalType, formData, setFormData, handleAddItem, 
               placeholder="Phone Number (optional)"
               value={formData.phoneNumber || ""}
               onChange={(e) => setFormData({...formData, phoneNumber: e.target.value})}
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
-                errors.phoneNumber ? 'border-red-500' : 'border-gray-300'
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent ${
+                errors.phoneNumber ? 'border-red-500' : 'border-gray-400'
               }`}
             />
             {renderError('phoneNumber')}
@@ -236,10 +236,10 @@ const AddModal = ({ showModal, modalType, formData, setFormData, handleAddItem, 
               onUpload={(data) => setFormData({...formData, profileImage: data})}
               accept="image/*"
               folder="drivers/profiles"
-              className="border-2 border-dashed border-gray-300 rounded-lg p-4"
+              className="border-2 border-dashed border-gray-400 rounded-lg p-4"
             />
             {formData.profileImage && (
-              <div className="text-sm text-green-600 bg-green-50 p-2 rounded">
+              <div className="text-sm text-yellow-700 bg-yellow-50 p-2 rounded border border-yellow-300">
                 ✓ Profile photo uploaded successfully
               </div>
             )}
@@ -254,10 +254,10 @@ const AddModal = ({ showModal, modalType, formData, setFormData, handleAddItem, 
               onUpload={(data) => setFormData({...formData, licenseDocument: data})}
               accept="image/*,application/pdf"
               folder="drivers/licenses"
-              className="border-2 border-dashed border-gray-300 rounded-lg p-4"
+              className="border-2 border-dashed border-gray-400 rounded-lg p-4"
             />
             {formData.licenseDocument && (
-              <div className="text-sm text-green-600 bg-green-50 p-2 rounded">
+              <div className="text-sm text-yellow-700 bg-yellow-50 p-2 rounded border border-yellow-300">
                 ✓ License document uploaded successfully
               </div>
             )}
@@ -275,8 +275,8 @@ const AddModal = ({ showModal, modalType, formData, setFormData, handleAddItem, 
               placeholder="Route Name (e.g., Route A)"
               value={formData.routeName || ""}
               onChange={(e) => setFormData({...formData, routeName: e.target.value})}
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
-                errors.routeName ? 'border-red-500' : 'border-gray-300'
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent ${
+                errors.routeName ? 'border-red-500' : 'border-gray-400'
               }`}
             />
             {renderError('routeName')}
@@ -288,8 +288,8 @@ const AddModal = ({ showModal, modalType, formData, setFormData, handleAddItem, 
               placeholder="Start Point"
               value={formData.startPoint || ""}
               onChange={(e) => setFormData({...formData, startPoint: e.target.value})}
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
-                errors.startPoint ? 'border-red-500' : 'border-gray-300'
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent ${
+                errors.startPoint ? 'border-red-500' : 'border-gray-400'
               }`}
             />
             {renderError('startPoint')}
@@ -301,8 +301,8 @@ const AddModal = ({ showModal, modalType, formData, setFormData, handleAddItem, 
               placeholder="End Point"
               value={formData.endPoint || ""}
               onChange={(e) => setFormData({...formData, endPoint: e.target.value})}
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
-                errors.endPoint ? 'border-red-500' : 'border-gray-300'
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent ${
+                errors.endPoint ? 'border-red-500' : 'border-gray-400'
               }`}
             />
             {renderError('endPoint')}
@@ -315,8 +315,8 @@ const AddModal = ({ showModal, modalType, formData, setFormData, handleAddItem, 
                 placeholder="Distance (km)"
                 value={formData.distance || ""}
                 onChange={(e) => setFormData({...formData, distance: parseFloat(e.target.value) || ''})}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
-                  errors.distance ? 'border-red-500' : 'border-gray-300'
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent ${
+                  errors.distance ? 'border-red-500' : 'border-gray-400'
                 }`}
                 min="0.1"
                 step="0.1"
@@ -330,8 +330,8 @@ const AddModal = ({ showModal, modalType, formData, setFormData, handleAddItem, 
                 placeholder="Time (minutes)"
                 value={formData.estimatedTime || ""}
                 onChange={(e) => setFormData({...formData, estimatedTime: parseInt(e.target.value) || ''})}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
-                  errors.estimatedTime ? 'border-red-500' : 'border-gray-300'
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent ${
+                  errors.estimatedTime ? 'border-red-500' : 'border-gray-400'
                 }`}
                 min="1"
               />
@@ -369,8 +369,8 @@ const AddModal = ({ showModal, modalType, formData, setFormData, handleAddItem, 
             disabled={isSubmitting || modalType === "student"}
             className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors ${
               modalType === "student" || isSubmitting
-                ? "bg-gray-300 text-gray-500 cursor-not-allowed" 
-                : "bg-blue-600 text-white hover:bg-blue-700"
+                ? "bg-gray-400 text-gray-200 cursor-not-allowed" 
+                : "bg-yellow-500 text-gray-900 hover:bg-yellow-600"
             }`}
           >
             {isSubmitting ? 'Adding...' : `Add ${modalType}`}
@@ -381,7 +381,7 @@ const AddModal = ({ showModal, modalType, formData, setFormData, handleAddItem, 
               setShowModal(false);
               setErrors({});
             }}
-            className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-lg font-medium hover:bg-gray-400 transition-colors"
+            className="flex-1 bg-gray-500 text-white py-2 px-4 rounded-lg font-medium hover:bg-gray-600 transition-colors"
             disabled={isSubmitting}
           >
             Cancel

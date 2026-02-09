@@ -29,10 +29,10 @@ const BusesTable = ({ buses, loading, deleteUser, openAddModal }) => {
       label: 'Bus Number',
       render: (value) => (
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+          <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
             🚌
           </div>
-          <span className="font-semibold">{value}</span>
+          <span className="font-semibold text-gray-800">{value}</span>
         </div>
       )
     },
@@ -50,8 +50,8 @@ const BusesTable = ({ buses, loading, deleteUser, openAddModal }) => {
           value={value}
           onChange={(e) => handleStatusChange(item._id, e.target.value)}
           className={`px-3 py-1 text-xs font-medium rounded-full border-0 cursor-pointer ${
-            value === 'active' ? 'bg-green-100 text-green-800' : 
-            value === 'maintenance' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'
+            value === 'active' ? 'bg-yellow-500 text-gray-900' : 
+            value === 'maintenance' ? 'bg-yellow-300 text-gray-800' : 'bg-gray-400 text-white'
           }`}
         >
           <option value="active">Active</option>
@@ -68,7 +68,7 @@ const BusesTable = ({ buses, loading, deleteUser, openAddModal }) => {
           <div className="text-xs">
             <span className="text-gray-500">Driver:</span> 
             <span className={`ml-1 font-medium ${
-              item.driverId ? 'text-green-600' : 'text-red-600'
+              item.driverId ? 'text-yellow-600' : 'text-gray-500'
             }`}>
               {item.driverId?.name || 'Not Assigned'}
             </span>
@@ -76,7 +76,7 @@ const BusesTable = ({ buses, loading, deleteUser, openAddModal }) => {
           <div className="text-xs">
             <span className="text-gray-500">Route:</span> 
             <span className={`ml-1 font-medium ${
-              item.routeId ? 'text-purple-600' : 'text-red-600'
+              item.routeId ? 'text-yellow-600' : 'text-gray-500'
             }`}>
               {item.routeId?.routeName || 'Not Assigned'}
             </span>

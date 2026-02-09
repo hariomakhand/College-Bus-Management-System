@@ -132,7 +132,7 @@ const router = createBrowserRouter([
         ),
       },
       {
-        path: "/student-panel",
+        path: "/student-dashboard",
         element: (
           <Suspense fallback={<div>Loading...</div>}>
             <StudentPanel />
@@ -140,11 +140,21 @@ const router = createBrowserRouter([
         ),
       },
       {
-        path: "/student-dashboard",
+        path: "/student",
         element: (
           <ProtectedRoute requiredRole="student">
             <Suspense fallback={<div>Loading...</div>}>
               <StudentPanel />
+            </Suspense>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/driver",
+        element: (
+          <ProtectedRoute requiredRole="driver">
+            <Suspense fallback={<div>Loading...</div>}>
+              <DriverPanel />
             </Suspense>
           </ProtectedRoute>
         ),
