@@ -16,6 +16,14 @@ export const AdminAPI = axios.create({
   withCredentials: true
 });
 
+export const StudentAPI = axios.create({
+  baseURL: `${import.meta.env.VITE_API_URL}/api/student`,
+  headers: {
+    "Content-Type": "application/json"
+  },
+  withCredentials: true
+});
+
 // Admin API functions
 export const adminAPI = {
   // Dashboard
@@ -42,4 +50,12 @@ export const adminAPI = {
   
   // Assignment
   assignBus: (data) => AdminAPI.put('/assign-bus', data)
+};
+
+// Student API functions
+export const studentAPI = {
+  getRoutes: () => StudentAPI.get('/routes'),
+  applyForBus: (data) => StudentAPI.post('/apply-bus', data),
+  getAnnouncements: () => StudentAPI.get('/announcements'),
+  getDashboard: () => StudentAPI.get('/dashboard')
 };

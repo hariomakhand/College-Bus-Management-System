@@ -393,7 +393,7 @@ const StudentNotifications = () => {
                         </div>
                       </div>
                     </div>
-                  ))}}
+                  ))}
                   
                   {/* Recent announcements */}
                   {recentAnnouncements.map((announcement) => (
@@ -435,7 +435,7 @@ const StudentNotifications = () => {
                         </button>
                       </div>
                     </div>
-                  ))}}}
+                  ))}
                 </>
               )}
             </div>

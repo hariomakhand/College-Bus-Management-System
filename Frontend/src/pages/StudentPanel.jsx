@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../Context/AuthContext';
 import { useLogout } from '../hooks/useLogout';
 import Sidebar from '../components/Sidebar';
+import { studentAPI } from '../Api';
 import { 
   useGetStudentDashboardQuery,
   useUpdateStudentProfileMutation,
@@ -41,15 +42,14 @@ const StudentPanel = () => {
   const fetchRoutes = async () => {
     try {
       setRoutesLoading(true);
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/student/routes`);
-      const data = await response.json();
-      console.log('Routes API Response:', data); // Debug log
-      if (data.success) {
-        console.log('Routes with buses:', data.routes); // Debug log
-        setRoutesData(data.routes);
+      const response = await studentAPI.getRoutes();
+      console.log('Routes API Response:', response.data);
+      if (response.data.success) {
+        console.log('Routes with buses:', response.data.routes);
+        setRoutesData(response.data.routes);
         setRoutesError(null);
       } else {
-        setRoutesError(data);
+        setRoutesError(response.data);
       }
     } catch (error) {
       console.error('Routes fetch error:', error);
@@ -125,20 +125,13 @@ const StudentPanel = () => {
 
       const reason = prompt('Enter reason for bus application (optional):') || 'Regular commute to campus';
       
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/student/apply-bus`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          routeId,
-          pickupStop: pickupStop.trim(),
-          reason
-        })
+      const response = await studentAPI.applyForBus({
+        routeId,
+        pickupStop: pickupStop.trim(),
+        reason
       });
       
-      const result = await response.json();
+      const result = response.data;
       
       if (result.success) {
         alert(result.message || 'Bus application submitted successfully!');
