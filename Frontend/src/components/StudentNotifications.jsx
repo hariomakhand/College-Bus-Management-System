@@ -78,9 +78,10 @@ const StudentNotifications = () => {
     if (!user || user.role !== 'student') return;
 
     // Initialize socket connection
-    const newSocket = io('http://localhost:5001', {
+    const newSocket = io(import.meta.env.VITE_API_URL || 'http://localhost:5001', {
       withCredentials: true,
-      timeout: 5000
+      timeout: 5000,
+      transports: ['websocket', 'polling']
     });
 
     newSocket.on('connect', () => {

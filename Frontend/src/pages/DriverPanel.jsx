@@ -56,10 +56,11 @@ const DriverPanel = () => {
   // Socket.IO connection
   useEffect(() => {
     try {
-      const newSocket = io('http://localhost:5001', {
+      const newSocket = io(import.meta.env.VITE_API_URL || 'http://localhost:5001', {
         withCredentials: true,
         timeout: 5000,
-        forceNew: true
+        forceNew: true,
+        transports: ['websocket', 'polling']
       });
 
       newSocket.on('connect', () => {

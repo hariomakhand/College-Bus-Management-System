@@ -20,7 +20,9 @@ const NotificationPanel = () => {
   useEffect(() => {
     if (!user) return;
 
-    const socket = io('http://localhost:5001');
+    const socket = io(import.meta.env.VITE_API_URL || 'http://localhost:5001', {
+      transports: ['websocket', 'polling']
+    });
     socket.emit('join-admin', user.id);
 
     socket.on('newNotification', (notification) => {

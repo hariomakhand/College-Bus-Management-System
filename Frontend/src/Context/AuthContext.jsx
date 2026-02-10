@@ -28,7 +28,7 @@ export const AuthProvider = ({ children }) => {
           }
         }
       } catch (err) {
-        console.log("Not authenticated");
+        // Silent fail - user not authenticated
       } finally {
         setLoading(false);
       }

@@ -41,7 +41,7 @@ const StudentPanel = () => {
   const fetchRoutes = async () => {
     try {
       setRoutesLoading(true);
-      const response = await fetch('http://localhost:5001/api/student/routes');
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/student/routes`);
       const data = await response.json();
       console.log('Routes API Response:', data); // Debug log
       if (data.success) {
@@ -125,7 +125,7 @@ const StudentPanel = () => {
 
       const reason = prompt('Enter reason for bus application (optional):') || 'Regular commute to campus';
       
-      const response = await fetch('http://localhost:5001/api/student/apply-bus', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/student/apply-bus`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
