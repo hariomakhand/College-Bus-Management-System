@@ -1,5 +1,6 @@
 // AuthContext.js
 import { createContext, useContext, useState, useEffect } from "react";
+import { initializeSocket, disconnectSocket } from '../services/socket';
 
 const AuthContext = createContext();
 
@@ -11,7 +12,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await fetch("http://localhost:5001/api/auth/check", {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/check`, {
           method: "GET",
           credentials: "include",
           headers: {
@@ -23,6 +24,7 @@ export const AuthProvider = ({ children }) => {
           const data = await res.json();
           if (data.isAuth) {
             setUser(data.user);
+            initializeSocket();
           }
         }
       } catch (err) {
@@ -42,8 +44,7 @@ export const AuthProvider = ({ children }) => {
     console.log("🔄 Logout function called");
     try {
       console.log("📡 Calling backend logout...");
-      // Call backend to clear JWT cookies
-      await fetch("http://localhost:5001/api/auth/logout", {
+      await fetch(`${import.meta.env.VITE_API_URL}/api/auth/logout`, {
         method: "POST",
         credentials: "include",
         headers: {
@@ -56,11 +57,11 @@ export const AuthProvider = ({ children }) => {
     }
     
     console.log("🧹 Clearing frontend data...");
+    disconnectSocket();
     setUser(null);
     localStorage.clear();
     sessionStorage.clear();
     
-    // Clear frontend cookies as backup
     document.cookie.split(";").forEach(function(c) { 
       const eqPos = c.indexOf("=");
       const name = eqPos > -1 ? c.substr(0, eqPos).trim() : c.trim();

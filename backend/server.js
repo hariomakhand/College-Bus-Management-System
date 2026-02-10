@@ -19,10 +19,11 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin:process.env.CLIENT_URL,
+    origin: [process.env.CLIENT_URL, 'http://localhost:5173', 'https://college-bus-management-system-4i8l.onrender.com'],
     credentials: true,
- 
-  }
+    methods: ['GET', 'POST']
+  },
+  transports: ['websocket', 'polling']
 });
 const PORT = process.env.PORT || 5001;
 

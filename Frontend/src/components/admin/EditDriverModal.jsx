@@ -24,7 +24,7 @@ const EditDriverModal = ({ driver, onClose, onUpdate }) => {
     setLoading(true);
 
     try {
-      const response = await fetch(`http://localhost:5001/api/admin/drivers/${driver._id}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/admin/drivers/${driver._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

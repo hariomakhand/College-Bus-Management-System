@@ -16,7 +16,7 @@ export default function EmailVerification() {
     setIsLoading(true);
     
     try {
-      const response = await fetch('http://localhost:5001/api/auth/verify-email', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/verify-email`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

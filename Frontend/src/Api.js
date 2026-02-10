@@ -1,7 +1,7 @@
 import axios from "axios";
 
 export const API = axios.create({
-  baseURL: "http://10.242.9.192:5001/api/auth",
+  baseURL: `${import.meta.env.VITE_API_URL}/api/auth`,
   headers: {
     "Content-Type": "application/json"
   },
@@ -9,7 +9,7 @@ export const API = axios.create({
 });
 
 export const AdminAPI = axios.create({
-  baseURL: "http://10.242.9.192:5001/api/admin",
+  baseURL: `${import.meta.env.VITE_API_URL}/api/admin`,
   headers: {
     "Content-Type": "application/json"
   },

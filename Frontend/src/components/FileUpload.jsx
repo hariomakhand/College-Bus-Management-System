@@ -47,7 +47,7 @@ const FileUpload = ({
         });
         formData.append('folder', folder);
 
-        const response = await fetch('http://localhost:5001/api/upload/multiple', {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/upload/multiple`, {
           method: 'POST',
           credentials: 'include',
           body: formData
@@ -64,7 +64,7 @@ const FileUpload = ({
         formData.append('file', files[0]);
         formData.append('folder', folder);
 
-        const response = await fetch('http://localhost:5001/api/upload/single', {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/upload/single`, {
           method: 'POST',
           credentials: 'include',
           body: formData
