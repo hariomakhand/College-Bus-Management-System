@@ -17,9 +17,15 @@ const uploadRoutes = require('./routes/UploadRoutes');
 
 const app = express();
 const server = http.createServer(app);
+
+// Parse CLIENT_URL from .env (supports comma-separated URLs)
+const allowedOrigins = process.env.CLIENT_URL 
+  ? process.env.CLIENT_URL.split(',').map(url => url.trim())
+  : ['http://localhost:5173'];
+
 const io = socketIo(server, {
   cors: {
-    origin: [process.env.CLIENT_URL, 'http://localhost:5173', 'https://college-bus-management-system-4i8l.onrender.com'],
+    origin: allowedOrigins,
     credentials: true,
     methods: ['GET', 'POST']
   },
@@ -37,7 +43,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // CORS configuration
 app.use(cors({
-  origin: process.env.CLIENT_URL,
+  origin: allowedOrigins,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
