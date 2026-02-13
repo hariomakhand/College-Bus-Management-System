@@ -14,7 +14,7 @@ const Dashboard = lazy(() => import("../pages/Dashboard"));
 
 const AdminPanel = lazy(() => import("../pages/AdminPanel"));
 const StudentPanel = lazy(() => import("../pages/StudentPanel"));
-const Driverpanel = lazy(() => import("../pages/Driverpanel"));
+const Driverpanel = lazy(() => import("../pages/DriverPanel"));
 const StudentAuth = lazy(() => import("../pages/StudentAuth"));
 const StudentTest = lazy(() => import("../pages/StudentTest"));
 const EmailVerification = lazy(() => import("../pages/EmailVerification"));
