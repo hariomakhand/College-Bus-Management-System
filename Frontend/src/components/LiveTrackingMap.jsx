@@ -304,7 +304,7 @@ const LiveTrackingMap = ({ route, busNumber, driverId, socket }) => {
     console.log('✅ Tracking stopped, states cleared');
     
     // Notify backend to stop tracking
-    fetch('http://localhost:5001/api/driver/end-trip', {
+    fetch(`${import.meta.env.VITE_API_URL}/api/driver/end-trip`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -333,7 +333,7 @@ const LiveTrackingMap = ({ route, busNumber, driverId, socket }) => {
     console.log('Location:', location);
     
     try {
-      const response = await fetch('http://localhost:5001/api/driver/update-location', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/driver/update-location`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

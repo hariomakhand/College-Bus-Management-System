@@ -14,7 +14,7 @@ const Dashboard = lazy(() => import("../pages/Dashboard"));
 
 const AdminPanel = lazy(() => import("../pages/AdminPanel"));
 const StudentPanel = lazy(() => import("../pages/StudentPanel"));
-const DriverPanel = lazy(() => import("../pages/Driverpanel"));
+const Driverpanel = lazy(() => import("../pages/Driverpanel"));
 const StudentAuth = lazy(() => import("../pages/StudentAuth"));
 const StudentTest = lazy(() => import("../pages/StudentTest"));
 const EmailVerification = lazy(() => import("../pages/EmailVerification"));
@@ -118,7 +118,7 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute requiredRole="driver">
             <Suspense fallback={<div>Loading...</div>}>
-              <DriverPanel />
+              <Driverpanel />
             </Suspense>
           </ProtectedRoute>
         ),
@@ -156,7 +156,7 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute requiredRole="driver">
             <Suspense fallback={<div>Loading...</div>}>
-              <DriverPanel />
+              <Driverpanel />
             </Suspense>
           </ProtectedRoute>
         ),
