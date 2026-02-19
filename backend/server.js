@@ -36,18 +36,10 @@ const PORT = process.env.PORT || 5001;
 // Make io available globally
 global.io = io;  
 
-// Body parsing middleware
-app.use(express.json({ limit: '10mb' }));
-app.use(cookieParser());
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-
-// CORS configuration
+// CORS must be FIRST - before any other middleware
 app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (mobile apps, Postman, etc.)
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.indexOf(origin) !== -1) {
+  origin: function(origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
@@ -55,14 +47,13 @@ app.use(cors({
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  exposedHeaders: ['Set-Cookie'],
-  preflightContinue: false,
-  optionsSuccessStatus: 204
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
-// Handle preflight requests explicitly
-app.options('*', cors());
+// Body parsing middleware
+app.use(express.json({ limit: '10mb' }));
+app.use(cookieParser());
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Routes
 app.use('/api/auth', authRoutes);
