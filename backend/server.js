@@ -23,6 +23,19 @@ const allowedOrigins = process.env.CLIENT_URL
   ? process.env.CLIENT_URL.split(',').map(url => url.trim())
   : ['http://localhost:5173'];
 
+const PORT = process.env.PORT || 5001;
+
+// CORS must be FIRST - before any other middleware
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  exposedHeaders: ['Set-Cookie'],
+  preflightContinue: false,
+  optionsSuccessStatus: 204
+}));
+
 const io = socketIo(server, {
   cors: {
     origin: allowedOrigins,
@@ -31,24 +44,9 @@ const io = socketIo(server, {
   },
   transports: ['websocket', 'polling']
 });
-const PORT = process.env.PORT || 5001;
 
 // Make io available globally
-global.io = io;  
-
-// CORS must be FIRST - before any other middleware
-app.use(cors({
-  origin: function(origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
-}));
+global.io = io;
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
