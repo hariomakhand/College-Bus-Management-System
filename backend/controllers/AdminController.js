@@ -1295,6 +1295,85 @@ const updateStudentBusAssignment = async (req, res) => {
   }
 };
 
+// Get change requests
+const getChangeRequests = async (req, res) => {
+  try {
+    const students = await Student.find({
+      'changeRequest.status': 'pending',
+      isDeleted: false
+    })
+    .populate('appliedRouteId', 'routeName routeNumber')
+    .populate('changeRequest.newRouteId', 'routeName routeNumber')
+    .populate('busId', 'busNumber model')
+    .select('-password')
+    .sort({ 'changeRequest.requestDate': -1 });
+
+    res.json({
+      success: true,
+      changeRequests: students
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Handle change request
+const handleChangeRequest = async (req, res) => {
+  try {
+    const { studentId, action, busId, adminResponse } = req.body;
+    
+    const student = await Student.findById(studentId);
+    if (!student || !student.changeRequest) {
+      return res.status(404).json({ success: false, message: 'Change request not found' });
+    }
+
+    if (action === 'approve') {
+      // Update student's route and stop
+      student.appliedRouteId = student.changeRequest.newRouteId;
+      student.preferredPickupStop = student.changeRequest.newPickupStop;
+      
+      // If bus is provided, update it
+      if (busId) {
+        student.busId = busId;
+      }
+      
+      // Update change request status
+      student.changeRequest.status = 'approved';
+      student.changeRequest.responseDate = new Date();
+      student.changeRequest.adminResponse = adminResponse || 'Your change request has been approved';
+      
+      // Send notification
+      await createNotification(
+        student._id,
+        'Change Request Approved',
+        `Your ${student.changeRequest.type} change request has been approved. ${adminResponse || ''}`,
+        'success'
+      );
+    } else if (action === 'reject') {
+      student.changeRequest.status = 'rejected';
+      student.changeRequest.responseDate = new Date();
+      student.changeRequest.adminResponse = adminResponse || 'Your change request has been rejected';
+      
+      // Send notification
+      await createNotification(
+        student._id,
+        'Change Request Rejected',
+        `Your ${student.changeRequest.type} change request has been rejected. Reason: ${adminResponse || 'No reason provided'}`,
+        'error'
+      );
+    }
+
+    await student.save({ validateBeforeSave: false });
+
+    res.json({
+      success: true,
+      message: `Change request ${action}d successfully`
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   getDashboardStats,
   getAllDrivers,
@@ -1326,5 +1405,7 @@ module.exports = {
   updateDriver,
   updateBus,
   updateRoute,
-  updateStudentBusAssignment
+  updateStudentBusAssignment,
+  getChangeRequests,
+  handleChangeRequest
 };

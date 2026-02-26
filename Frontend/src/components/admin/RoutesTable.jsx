@@ -1,12 +1,13 @@
 import React from 'react';
-import { MapPin, Plus, Loader2, Trash2, Navigation, Clock, Users } from 'lucide-react';
+import { MapPin, Plus, Loader2, Trash2, Navigation, Clock, Users, Edit } from 'lucide-react';
 
 const RoutesTable = ({ 
   routes, 
   loading, 
   setShowModal, 
   setModalType, 
-  deleteUser 
+  deleteUser,
+  onEdit
 }) => {
   return (
     <div style={{
@@ -213,11 +214,42 @@ const RoutesTable = ({
                     color: '#6b7280',
                     display: window.innerWidth < 768 ? 'none' : 'table-cell'
                   }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <Users size={12} style={{ color: '#eab308' }} />
-                      <span style={{ fontSize: '12px', fontWeight: '500', color: '#1f2937' }}>
-                        {route.stops ? route.stops.split(',').filter(s => s.trim()).length : 0} stops
-                      </span>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      {(() => {
+                        try {
+                          if (!route.stops || route.stops === '') return <span style={{ fontSize: '12px', color: '#9ca3af' }}>No stops</span>;
+                          
+                          const stops = JSON.parse(route.stops);
+                          
+                          if (!Array.isArray(stops) || stops.length === 0) {
+                            return <span style={{ fontSize: '12px', color: '#9ca3af' }}>No stops</span>;
+                          }
+                          
+                          return (
+                            <>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px' }}>
+                                <Users size={12} style={{ color: '#eab308' }} />
+                                <span style={{ fontSize: '12px', fontWeight: '600', color: '#1f2937' }}>
+                                  {stops.length} stops
+                                </span>
+                              </div>
+                              <div style={{ fontSize: '11px', color: '#6b7280', maxHeight: '60px', overflowY: 'auto' }}>
+                                {stops.slice(0, 3).map((stop, idx) => (
+                                  <div key={idx}>
+                                    • {stop.name} ({stop.time})
+                                  </div>
+                                ))}
+                                {stops.length > 3 && (
+                                  <div style={{ fontStyle: 'italic', color: '#9ca3af' }}>+{stops.length - 3} more</div>
+                                )}
+                              </div>
+                            </>
+                          );
+                        } catch (err) {
+                          console.error('Error parsing stops:', err);
+                          return <span style={{ fontSize: '12px', color: '#9ca3af' }}>Invalid data</span>;
+                        }
+                      })()}
                     </div>
                   </td>
                   
@@ -238,7 +270,36 @@ const RoutesTable = ({
                   </td>
                   
                   <td style={{ padding: window.innerWidth < 640 ? '12px' : '16px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'center' }}>
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
+                      <button
+                        onClick={() => onEdit(route)}
+                        style={{
+                          color: '#eab308',
+                          backgroundColor: 'transparent',
+                          border: '1px solid #eab308',
+                          padding: '6px 10px',
+                          borderRadius: '6px',
+                          fontSize: '11px',
+                          fontWeight: '500',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          minWidth: '60px',
+                          justifyContent: 'center'
+                        }}
+                        onMouseOver={(e) => {
+                          e.currentTarget.style.backgroundColor = '#fef3c7';
+                        }}
+                        onMouseOut={(e) => {
+                          e.currentTarget.style.backgroundColor = 'transparent';
+                        }}
+                        title="Edit Route"
+                      >
+                        <Edit size={12} />
+                        Edit
+                      </button>
                       <button
                         onClick={() => deleteUser('routes', route._id)}
                         style={{
@@ -254,16 +315,16 @@ const RoutesTable = ({
                           display: 'flex',
                           alignItems: 'center',
                           gap: '4px',
-                          minWidth: '70px',
+                          minWidth: '60px',
                           justifyContent: 'center'
                         }}
                         onMouseOver={(e) => {
-                          e.target.style.backgroundColor = '#f3f4f6';
-                          e.target.style.borderColor = '#9ca3af';
+                          e.currentTarget.style.backgroundColor = '#f3f4f6';
+                          e.currentTarget.style.borderColor = '#9ca3af';
                         }}
                         onMouseOut={(e) => {
-                          e.target.style.backgroundColor = 'transparent';
-                          e.target.style.borderColor = '#d1d5db';
+                          e.currentTarget.style.backgroundColor = 'transparent';
+                          e.currentTarget.style.borderColor = '#d1d5db';
                         }}
                         title="Delete Route"
                       >
@@ -312,7 +373,15 @@ const RoutesTable = ({
                 fontWeight: 'bold',
                 color: '#4b5563'
               }}>
-                {routes.reduce((total, route) => total + (route.stops ? route.stops.split(',').filter(s => s.trim()).length : 0), 0)}
+                {routes.reduce((total, route) => {
+                  try {
+                    if (!route.stops) return total;
+                    const stops = JSON.parse(route.stops);
+                    return total + (Array.isArray(stops) ? stops.length : 0);
+                  } catch {
+                    return total;
+                  }
+                }, 0)}
               </div>
               <div style={{ fontSize: '11px', color: '#6b7280' }}>Total Stops</div>
             </div>

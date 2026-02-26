@@ -29,6 +29,11 @@ const routeSchema = Joi.object({
       "string.empty": "End point is required",
     }),
 
+  startPointLat: Joi.number().optional().allow(null),
+  startPointLng: Joi.number().optional().allow(null),
+  endPointLat: Joi.number().optional().allow(null),
+  endPointLng: Joi.number().optional().allow(null),
+
   distance: Joi.number()
     .min(0.1)
     .required()
@@ -45,14 +50,19 @@ const routeSchema = Joi.object({
       "number.min": "Estimated time must be at least 1 minute",
     }),
 
-  stops: Joi.string()
-    .allow("", null)
+  stops: Joi.alternatives()
+    .try(
+      Joi.string().allow("", null),
+      Joi.array()
+    )
+    .optional()
     .messages({
-      "string.base": "Stops must be a string",
+      "alternatives.types": "Stops must be a string or array",
     }),
 
   description: Joi.string()
     .allow("", null)
+    .optional()
     .messages({
       "string.base": "Description must be a string",
     }),
@@ -62,6 +72,22 @@ const routeSchema = Joi.object({
     .optional()
     .messages({
       "any.only": "Status must be active, inactive, or maintenance",
+    }),
+
+  departureTime: Joi.string()
+    .pattern(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/)
+    .optional()
+    .allow("", null)
+    .messages({
+      "string.pattern.base": "Departure time must be in HH:MM format",
+    }),
+
+  arrivalTime: Joi.string()
+    .pattern(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/)
+    .optional()
+    .allow("", null)
+    .messages({
+      "string.pattern.base": "Arrival time must be in HH:MM format",
     }),
 
 });

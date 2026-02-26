@@ -1,15 +1,60 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MapPin, Navigation, Clock, AlertCircle } from 'lucide-react';
+import { MapPin, Navigation, Clock, AlertCircle, Bell } from 'lucide-react';
 import io from 'socket.io-client';
+import { getBusDistanceToStop, formatETAMessage } from '../utils/busTracking';
+import { parseStops } from '../utils/parseStops';
 
-const StudentLocationMap = ({ busNumber }) => {
+const StudentLocationMap = ({ busNumber, studentStop, route }) => {
   const [busLocation, setBusLocation] = useState(null);
   const [connectionStatus, setConnectionStatus] = useState('connecting');
   const [lastUpdate, setLastUpdate] = useState(null);
   const [map, setMap] = useState(null);
   const [busMarker, setBusMarker] = useState(null);
+  const [stopMarker, setStopMarker] = useState(null);
+  const [distanceInfo, setDistanceInfo] = useState(null);
+  const [hasNotified5km, setHasNotified5km] = useState(false);
+  const [hasNotified2km, setHasNotified2km] = useState(false);
   const mapRef = useRef(null);
   const socketRef = useRef(null);
+
+  // Calculate distance and ETA when bus location updates
+  useEffect(() => {
+    if (busLocation && studentStop) {
+      const info = getBusDistanceToStop(busLocation, studentStop);
+      setDistanceInfo(info);
+      
+      // Notification logic
+      if (info && info.shouldNotify) {
+        const dist = parseFloat(info.distance);
+        
+        // 5km notification
+        if (dist <= 5 && dist > 4.5 && !hasNotified5km) {
+          showNotification('🚌 Bus Approaching!', `Your bus is 5 km away. ETA: ${formatETAMessage(info.eta)}`);
+          setHasNotified5km(true);
+        }
+        
+        // 2km notification
+        if (dist <= 2 && dist > 1.5 && !hasNotified2km) {
+          showNotification('🚌 Bus Very Close!', `Your bus is 2 km away. ETA: ${formatETAMessage(info.eta)}`);
+          setHasNotified2km(true);
+        }
+      }
+    }
+  }, [busLocation, studentStop]);
+
+  // Show browser notification
+  const showNotification = (title, body) => {
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification(title, { body, icon: '/bus-icon.png' });
+    }
+  };
+
+  // Request notification permission on mount
+  useEffect(() => {
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  }, []);
 
   // Initialize map
   useEffect(() => {
@@ -35,6 +80,11 @@ const StudentLocationMap = ({ busNumber }) => {
         }).addTo(mapInstance);
 
         setMap(mapInstance);
+        
+        // Add student stop marker if available
+        if (studentStop && studentStop.coordinates) {
+          addStopMarker(mapInstance, studentStop);
+        }
       } catch (error) {
         console.error('Map initialization error:', error);
         setConnectionStatus('error');
@@ -53,6 +103,38 @@ const StudentLocationMap = ({ busNumber }) => {
       }
     };
   }, []);
+
+  // Add student stop marker
+  const addStopMarker = async (mapInstance, stop) => {
+    if (!mapInstance || !stop.coordinates) return;
+    
+    try {
+      const L = await import('leaflet');
+      
+      const stopIcon = L.default.divIcon({
+        html: `<div style="background: #EF4444; color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border: 3px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3);">📍</div>`,
+        className: 'custom-stop-marker',
+        iconSize: [30, 30],
+        iconAnchor: [15, 15]
+      });
+
+      const marker = L.default.marker(
+        [stop.coordinates.lat, stop.coordinates.lng], 
+        { icon: stopIcon }
+      )
+        .addTo(mapInstance)
+        .bindPopup(`
+          <div style="text-align: center;">
+            <strong>Your Stop</strong><br/>
+            <small>${stop.name}</small>
+          </div>
+        `);
+
+      setStopMarker(marker);
+    } catch (error) {
+      console.error('Stop marker error:', error);
+    }
+  };
 
   // Socket connection and location tracking
   useEffect(() => {
@@ -210,6 +292,50 @@ const StudentLocationMap = ({ busNumber }) => {
 
   return (
     <div className="space-y-4">
+      {/* Distance & ETA Card */}
+      {distanceInfo && (
+        <div className={`p-4 rounded-lg shadow border ${
+          distanceInfo.isVeryNear ? 'bg-red-50 border-red-200' :
+          distanceInfo.isNear ? 'bg-yellow-50 border-yellow-200' :
+          'bg-blue-50 border-blue-200'
+        }`}>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-semibold text-gray-900 flex items-center">
+              <Bell className={`mr-2 ${
+                distanceInfo.isVeryNear ? 'text-red-600 animate-bounce' :
+                distanceInfo.isNear ? 'text-yellow-600' :
+                'text-blue-600'
+              }`} size={20} />
+              Bus Distance
+            </h3>
+            {distanceInfo.isVeryNear && (
+              <span className="px-3 py-1 bg-red-500 text-white text-xs font-bold rounded-full animate-pulse">
+                ARRIVING SOON!
+              </span>
+            )}
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div className="text-center p-3 bg-white rounded-lg">
+              <p className="text-xs text-gray-600 mb-1">Distance</p>
+              <p className="text-2xl font-bold text-gray-900">{distanceInfo.distance} km</p>
+            </div>
+            <div className="text-center p-3 bg-white rounded-lg">
+              <p className="text-xs text-gray-600 mb-1">Estimated Time</p>
+              <p className="text-2xl font-bold text-gray-900">{formatETAMessage(distanceInfo.eta)}</p>
+            </div>
+          </div>
+          
+          {distanceInfo.isNear && (
+            <div className="mt-3 p-3 bg-white rounded-lg border-l-4 border-yellow-500">
+              <p className="text-sm font-medium text-gray-900">
+                🚌 Your bus is nearby! Please be ready at your stop.
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Status Header */}
       <div className="bg-white p-4 rounded-lg shadow border">
         <div className="flex items-center justify-between">

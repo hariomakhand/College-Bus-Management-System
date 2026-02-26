@@ -31,7 +31,7 @@ const Navbar = () => {
 
   return (
     <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${scrolled
-        ? 'bg-white bg-opacity-95 backdrop-blur-lg shadow-2xl border-b border-blue-100'
+        ? 'bg-white bg-opacity-95 backdrop-blur-lg shadow-2xl border-b border-yellow-100'
         : 'bg-transparent'
       }`}>
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
@@ -50,9 +50,9 @@ const Navbar = () => {
             <div className="hidden md:block">
               <h1 className={`text-2xl font-bold tracking-tight transition-colors duration-300 ${scrolled ? 'text-gray-900' : 'text-white'
                 }`}>
-                Smart<span className="text-blue-500">Bus</span>
+                Smart<span className="text-yellow-500">Bus</span>
               </h1>
-              <p className={`text-xs font-medium transition-colors duration-300 ${scrolled ? 'text-gray-500' : 'text-blue-200'
+              <p className={`text-xs font-medium transition-colors duration-300 ${scrolled ? 'text-gray-500' : 'text-yellow-200'
                 }`}>Management System</p>
             </div>
           </div>
@@ -74,8 +74,8 @@ const Navbar = () => {
                     }
                   }}
                   className={`px-6 py-3 rounded-xl font-semibold text-sm transition-all duration-300 hover:scale-105 ${scrolled
-                      ? 'text-gray-700 hover:bg-blue-500 hover:text-white hover:shadow-lg'
-                      : 'text-white hover:bg-white hover:text-blue-600 hover:shadow-xl'
+                      ? 'text-gray-700 hover:bg-yellow-500 hover:text-white hover:shadow-lg'
+                      : 'text-white hover:bg-white hover:text-yellow-600 hover:shadow-xl'
                     }`}
                 >
                   {item}
@@ -93,7 +93,7 @@ const Navbar = () => {
                   className={`flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-300 hover:scale-105 ${scrolled ? 'bg-gray-100 hover:bg-gray-200' : 'bg-white bg-opacity-20 backdrop-blur-sm hover:bg-opacity-30'
                   }`}
                 >
-                  <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-green-400 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                  <div className="w-8 h-8 bg-gradient-to-r from-yellow-500 to-gray-400 rounded-full flex items-center justify-center text-white text-sm font-bold">
                     {user.name?.charAt(0).toUpperCase()}
                   </div>
                   <div>
@@ -101,7 +101,7 @@ const Navbar = () => {
                       }`}>
                       {user.name}
                     </div>
-                    <div className={`text-xs ${scrolled ? 'text-gray-500' : 'text-blue-200'
+                    <div className={`text-xs ${scrolled ? 'text-gray-500' : 'text-yellow-200'
                       }`}>
                       {user.role || 'User'}
                     </div>
@@ -119,7 +119,7 @@ const Navbar = () => {
                         navigate(getDashboardRoute());
                         setUserDropdownOpen(false);
                       }}
-                      className="w-full px-4 py-3 text-left text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors flex items-center space-x-2"
+                      className="w-full px-4 py-3 text-left text-gray-700 hover:bg-yellow-50 hover:text-yellow-600 transition-colors flex items-center space-x-2"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
@@ -155,10 +155,10 @@ const Navbar = () => {
                 </Link>
                 <Link
                   to="/signup"
-                  className="relative px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-105 hover:-translate-y-1"
+                  className="relative px-8 py-3 bg-gradient-to-r from-yellow-500 to-gray-600 text-white rounded-xl font-semibold hover:from-yellow-600 hover:to-gray-700 transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-105 hover:-translate-y-1"
                 >
                   <span className="relative z-10">Get Started</span>
-                  <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-gray-600 to-yellow-500 rounded-xl opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
                 </Link>
               </>
             )}
@@ -188,7 +188,7 @@ const Navbar = () => {
       {/* Unique Mobile Menu */}
       <div className={`md:hidden overflow-hidden transition-all duration-500 ${open ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
         }`}>
-        <div className="bg-white bg-opacity-95 backdrop-blur-lg border-t border-blue-100 shadow-2xl">
+        <div className="bg-white bg-opacity-95 backdrop-blur-lg border-t border-yellow-100 shadow-2xl">
           <div className="px-6 py-6 space-y-2">
             {['Home', 'About', 'Services', 'Contact'].map((item) => (
               <a
@@ -203,7 +203,7 @@ const Navbar = () => {
                   }
                   setOpen(false);
                 }}
-                className="block px-4 py-3 text-gray-700 hover:text-blue-600 hover:bg-blue-50 font-semibold rounded-xl transition-all duration-300 transform hover:translate-x-2"
+                className="block px-4 py-3 text-gray-700 hover:text-yellow-600 hover:bg-yellow-50 font-semibold rounded-xl transition-all duration-300 transform hover:translate-x-2"
               >
                 {item}
               </a>
@@ -212,7 +212,7 @@ const Navbar = () => {
               {user ? (
                 <>
                   <div className="flex items-center space-x-2 px-4 py-3 bg-gray-100 rounded-xl">
-                    <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-green-400 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                    <div className="w-8 h-8 bg-gradient-to-r from-yellow-500 to-gray-400 rounded-full flex items-center justify-center text-white text-sm font-bold">
                       {user.name?.charAt(0).toUpperCase()}
                     </div>
                     <div>
@@ -225,7 +225,7 @@ const Navbar = () => {
                       navigate(getDashboardRoute());
                       setOpen(false);
                     }}
-                    className="block w-full px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 font-semibold rounded-xl transition-all duration-300 text-center"
+                    className="block w-full px-4 py-3 text-gray-700 hover:bg-yellow-50 hover:text-yellow-600 font-semibold rounded-xl transition-all duration-300 text-center"
                   >
                     Dashboard
                   </button>
@@ -250,7 +250,7 @@ const Navbar = () => {
                   </Link>
                   <Link
                     to="/auth"
-                    className="block w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg text-center font-semibold"
+                    className="block w-full bg-gradient-to-r from-yellow-500 to-gray-600 text-white px-6 py-3 rounded-xl hover:from-yellow-600 hover:to-gray-700 transition-all duration-300 shadow-lg text-center font-semibold"
                     onClick={() => setOpen(false)}
                   >
                     Get Started

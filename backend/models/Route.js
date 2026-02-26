@@ -17,7 +17,15 @@ const RouteSchema = new mongoose.Schema({
     required: true
   },
   stops: {
-    type: String, // comma-separated stops
+    type: String, // JSON string: [{"name":"Stop1","time":"08:30"},{"name":"Stop2","time":"08:45"}]
+    default: ""
+  },
+  departureTime: {
+    type: String, // Format: "HH:MM" (24-hour)
+    default: ""
+  },
+  arrivalTime: {
+    type: String, // Format: "HH:MM" (24-hour)
     default: ""
   },
   distance: {

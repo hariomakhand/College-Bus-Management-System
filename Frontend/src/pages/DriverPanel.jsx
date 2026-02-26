@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../Context/AuthContext';
 import { useLogout } from '../hooks/useLogout';
 import Sidebar from '../components/Sidebar';
+import { parseStops } from '../utils/parseStops';
+import { calculateStopDistances } from '../utils/calculateDistance';
 import {
   useGetDriverDashboardQuery,
   useUpdateDriverProfileMutation,
@@ -416,33 +418,115 @@ const DriverPanel = () => {
                   Bus Stops
                 </h3>
                 <span className="bg-yellow-100 text-gray-900 px-3 py-1 rounded-full text-xs font-medium">
-                  {driverData.data.assignedRoute.stops?.length || 0} stops
+                  {Array.isArray(driverData.data.assignedRoute.stops) 
+                    ? driverData.data.assignedRoute.stops.length 
+                    : parseStops(driverData.data.assignedRoute.stops).length} stops
                 </span>
               </div>
               
               <div className="space-y-3 max-h-64 overflow-y-auto">
-                {driverData.data.assignedRoute.stops?.length > 0 ? (
-                  driverData.data.assignedRoute.stops.map((stop, index) => (
+                {(() => {
+                  let stops = driverData.data.assignedRoute.stops;
+                  
+                  // If stops is already an array, use it directly
+                  if (!Array.isArray(stops)) {
+                    stops = parseStops(stops);
+                  }
+                  
+                  console.log('Driver Panel - Raw stops:', driverData.data.assignedRoute.stops);
+                  console.log('Driver Panel - Parsed stops:', stops);
+                  
+                  if (!stops || stops.length === 0) {
+                    return (
+                      <div className="text-center py-8">
+                        <MapPin className="mx-auto text-gray-300 mb-2" size={32} />
+                        <p className="text-gray-500 text-sm">No stops defined for this route</p>
+                      </div>
+                    );
+                  }
+                  
+                  return stops.map((stop, index) => (
                     <div key={index} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-yellow-50 transition-colors">
                       <div className="w-8 h-8 bg-yellow-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
                         {index + 1}
                       </div>
                       <div className="flex-1">
-                        <p className="font-medium text-gray-900">{stop.stopName}</p>
-                        <p className="text-xs text-gray-500 flex items-center">
-                          <Clock className="mr-1" size={12} />
-                          {stop.timing}
+                        <p className="font-medium text-gray-900">{stop.name || stop.stopName || 'Unnamed Stop'}</p>
+                        <p className="text-xs text-gray-500">{stop.time || stop.timing || 'Time not set'}</p>
+                      </div>
+                    </div>
+                  ));
+                })()}
+              </div>
+            </div>
+          </div>
+
+          {/* Distance Analysis */}
+          <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+            <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center">
+              <Navigation className="mr-3 text-yellow-600" size={20} />
+              Distance Analysis (GPS Based)
+            </h3>
+            
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              {(() => {
+                let stops = driverData.data.assignedRoute.stops;
+                if (!Array.isArray(stops)) {
+                  stops = parseStops(stops);
+                }
+                
+                const distances = calculateStopDistances(stops);
+                
+                if (distances.length === 0) {
+                  return (
+                    <div className="text-center py-8">
+                      <Navigation className="mx-auto text-gray-300 mb-2" size={32} />
+                      <p className="text-gray-500 text-sm">No GPS coordinates available</p>
+                    </div>
+                  );
+                }
+                
+                return distances.map((dist, index) => (
+                  <div key={index} className="p-4 bg-gray-50 rounded-lg hover:bg-yellow-50 transition-colors">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-6 h-6 bg-yellow-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                          {index + 1}
+                        </div>
+                        <span className="font-medium text-gray-900">{dist.from}</span>
+                        <span className="text-gray-400">→</span>
+                        <span className="font-medium text-gray-900">{dist.to}</span>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-3 mt-3">
+                      <div className="text-center p-2 bg-white rounded">
+                        <p className="text-xs text-gray-500">Distance</p>
+                        <p className="text-sm font-bold text-gray-900">{dist.distance} km</p>
+                      </div>
+                      <div className="text-center p-2 bg-white rounded">
+                        <p className="text-xs text-gray-500">Time</p>
+                        <p className="text-sm font-bold text-gray-900">{dist.timeDiff || 0} min</p>
+                      </div>
+                      <div className="text-center p-2 bg-white rounded">
+                        <p className="text-xs text-gray-500">Speed</p>
+                        <p className={`text-sm font-bold ${
+                          dist.speed > 100 ? 'text-red-600' : 
+                          dist.speed > 60 ? 'text-yellow-600' : 
+                          'text-green-600'
+                        }`}>
+                          {dist.speed || 0} km/h
                         </p>
                       </div>
                     </div>
-                  ))
-                ) : (
-                  <div className="text-center py-8">
-                    <MapPin className="mx-auto text-gray-300 mb-2" size={32} />
-                    <p className="text-gray-500 text-sm">No stops defined</p>
+                    {dist.speed > 100 && (
+                      <div className="mt-2 flex items-center space-x-2 text-xs text-red-600">
+                        <AlertTriangle size={14} />
+                        <span>⚠️ Unrealistic speed! Check coordinates or time</span>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
+                ));
+              })()}
             </div>
           </div>
 
@@ -455,7 +539,11 @@ const DriverPanel = () => {
             
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="text-center p-4 bg-yellow-50 rounded-xl">
-                <div className="text-2xl font-bold text-gray-900">{driverData.data.assignedRoute.stops?.length || 0}</div>
+                <div className="text-2xl font-bold text-gray-900">
+                  {Array.isArray(driverData.data.assignedRoute.stops) 
+                    ? driverData.data.assignedRoute.stops.length 
+                    : parseStops(driverData.data.assignedRoute.stops).length}
+                </div>
                 <div className="text-xs text-gray-600 mt-1">Stops</div>
               </div>
               <div className="text-center p-4 bg-gray-50 rounded-xl">
@@ -1049,6 +1137,26 @@ const DriverPanel = () => {
                     {activeTab === 'profile' && 'Manage your profile settings'}
                   </p>
                 </div>
+              </div>
+              {/* Back Buttons */}
+              <div className="flex items-center gap-2">
+                {activeTab === 'dashboard' ? (
+                  <a
+                    href="/"
+                    className="p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors flex items-center gap-2"
+                  >
+                    <Home size={20} />
+                    <span className="hidden sm:inline">Back to Home</span>
+                  </a>
+                ) : (
+                  <button
+                    onClick={() => setActiveTab('dashboard')}
+                    className="p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors flex items-center gap-2"
+                  >
+                    <Home size={20} />
+                    <span className="hidden sm:inline">Back to Dashboard</span>
+                  </button>
+                )}
               </div>
             </div>
           </div>

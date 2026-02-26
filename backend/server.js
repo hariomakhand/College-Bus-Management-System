@@ -14,6 +14,7 @@ const notificationRoutes = require('./routes/NotificationRoutes');
 const studentRoutes = require('./routes/StudentRoutes');
 const driverRoutes = require('./routes/DriverRoutes');
 const uploadRoutes = require('./routes/UploadRoutes');
+const routeApplicationRoutes = require('./routes/routeApplicationRoutes');
 
 const app = express();
 const server = http.createServer(app);
@@ -60,6 +61,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/student', studentRoutes);
 app.use('/api/driver', driverRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/route-applications', routeApplicationRoutes);
 
 
 

@@ -14,13 +14,16 @@ import {
   useAddBusMutation,
   useDeleteBusMutation,
   useUpdateBusStatusMutation,
+  useUpdateBusMutation,
   useAddDriverMutation,
   useDeleteDriverMutation,
+  useUpdateDriverMutation,
   useAssignBusToDriverMutation,
   useUnassignBusFromDriverMutation,
   useAssignRouteToDriverMutation,
   useAddRouteMutation,
   useDeleteRouteMutation,
+  useUpdateRouteMutation,
   useAddStudentMutation,
   useDeleteStudentMutation
 } from "../store/apiSlice";
@@ -35,11 +38,14 @@ import AddModal from "../components/admin/AddModal";
 import StudentApprovals from "../components/admin/StudentApprovals";
 import AssignmentModal from "../components/admin/AssignmentModal";
 import AssignmentOverview from "../components/admin/AssignmentOverview";
+import ChangeRequests from "../components/admin/ChangeRequests";
 
 export default function AdminPanel() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [showAddModal, setShowAddModal] = useState(false);
   const [modalType, setModalType] = useState("");
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingId, setEditingId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDriver, setSelectedDriver] = useState(null);
   const [assignModal, setAssignModal] = useState(false);
@@ -63,10 +69,13 @@ export default function AdminPanel() {
   const [addBus] = useAddBusMutation();
   const [deleteBus] = useDeleteBusMutation();
   const [updateBusStatus] = useUpdateBusStatusMutation();
+  const [updateBus] = useUpdateBusMutation();
   const [addDriver] = useAddDriverMutation();
   const [deleteDriver] = useDeleteDriverMutation();
+  const [updateDriver] = useUpdateDriverMutation();
   const [addRoute] = useAddRouteMutation();
   const [deleteRoute] = useDeleteRouteMutation();
+  const [updateRoute] = useUpdateRouteMutation();
   const [addStudent] = useAddStudentMutation();
   const [deleteStudent] = useDeleteStudentMutation();
   const [assignBusToDriver] = useAssignBusToDriverMutation();
@@ -75,27 +84,51 @@ export default function AdminPanel() {
 
   const [formData, setFormData] = useState({});
 
-  // Handle Add Operations
+  // Handle Add/Edit Operations
   const handleAdd = async (e) => {
     e.preventDefault();
-    console.log('Adding item:', modalType, formData);
+    console.log(isEditMode ? 'Updating item:' : 'Adding item:', modalType, formData);
     try {
       let result;
-      if (modalType === "bus") {
-        result = await addBus(formData).unwrap();
-      } else if (modalType === "driver") {
-        result = await addDriver(formData).unwrap();
-      } else if (modalType === "route") {
-        result = await addRoute(formData).unwrap();
-      } else if (modalType === "student") {
-        result = await addStudent(formData).unwrap();
+      let dataToSend = { ...formData };
+      
+      // Convert stops array to JSON string for route
+      if (modalType === "route" && dataToSend.stops) {
+        if (Array.isArray(dataToSend.stops)) {
+          // Ensure each stop has name and time properties
+          const validStops = dataToSend.stops.filter(stop => stop.name && stop.time);
+          dataToSend.stops = JSON.stringify(validStops);
+        } else if (typeof dataToSend.stops === 'string' && dataToSend.stops.trim() !== '') {
+          // Already a string, keep as is
+        } else {
+          // Empty or invalid, set to empty string
+          dataToSend.stops = '';
+        }
       }
-      console.log('Add result:', result);
+      
+      if (modalType === "bus") {
+        result = isEditMode 
+          ? await updateBus({ id: editingId, ...dataToSend }).unwrap()
+          : await addBus(dataToSend).unwrap();
+      } else if (modalType === "driver") {
+        result = isEditMode
+          ? await updateDriver({ id: editingId, ...dataToSend }).unwrap()
+          : await addDriver(dataToSend).unwrap();
+      } else if (modalType === "route") {
+        result = isEditMode
+          ? await updateRoute({ id: editingId, ...dataToSend }).unwrap()
+          : await addRoute(dataToSend).unwrap();
+      } else if (modalType === "student") {
+        result = await addStudent(dataToSend).unwrap();
+      }
+      console.log(isEditMode ? 'Update result:' : 'Add result:', result);
       setShowAddModal(false);
       setFormData({});
-      alert("Added successfully! ✅");
+      setIsEditMode(false);
+      setEditingId(null);
+      alert((isEditMode ? "Updated" : "Added") + " successfully! ✅");
     } catch (err) {
-      console.error("Add error details:", {
+      console.error((isEditMode ? "Update" : "Add") + " error details:", {
         error: err,
         status: err.status,
         data: err.data,
@@ -114,7 +147,7 @@ export default function AdminPanel() {
         errorMessage = `HTTP ${err.status} Error`;
       }
 
-      alert("Failed to add: " + errorMessage);
+      alert("Failed to " + (isEditMode ? "update" : "add") + ": " + errorMessage);
     }
   };
 
@@ -191,6 +224,17 @@ export default function AdminPanel() {
   const openAddModal = (type) => {
     setModalType(type);
     setFormData({});
+    setIsEditMode(false);
+    setEditingId(null);
+    setShowAddModal(true);
+  };
+
+  // Handle Edit
+  const handleEdit = (type, item) => {
+    setModalType(type);
+    setFormData(item);
+    setIsEditMode(true);
+    setEditingId(item._id);
     setShowAddModal(true);
   };
 
@@ -201,7 +245,8 @@ export default function AdminPanel() {
     { id: "drivers", name: "Drivers", icon: UserCheck },
     { id: "routes", name: "Routes", icon: MapPin },
     { id: "students", name: "Students", icon: Users },
-    { id: "approvals", name: "Approvals", icon: Users }
+    { id: "approvals", name: "Approvals", icon: Users },
+    { id: "changes", name: "Change Requests", icon: MapPin }
   ];
 
   return (
@@ -316,9 +361,16 @@ export default function AdminPanel() {
             <RoutesTable
               routes={routes || []}
               loading={routesLoading}
-              setShowModal={setShowAddModal}
+              setShowModal={(show) => {
+                if (show) {
+                  openAddModal('route');
+                } else {
+                  setShowAddModal(false);
+                }
+              }}
               setModalType={setModalType}
               deleteUser={handleDelete}
+              onEdit={(route) => handleEdit('route', route)}
             />
           )}
 
@@ -338,10 +390,15 @@ export default function AdminPanel() {
           {activeTab === "approvals" && (
             <AdminStudentManagement />
           )}
+
+          {/* Change Requests Tab */}
+          {activeTab === "changes" && (
+            <ChangeRequests />
+          )}
         </div>
       </div>
 
-      {/* Add Modal */}
+      {/* Add/Edit Modal */}
       {showAddModal && (
         <AddModal
           showModal={showAddModal}
@@ -350,6 +407,7 @@ export default function AdminPanel() {
           setFormData={setFormData}
           handleAddItem={handleAdd}
           setShowModal={setShowAddModal}
+          isEditMode={isEditMode}
         />
       )}
 

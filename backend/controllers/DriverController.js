@@ -259,6 +259,23 @@ const getDriverDashboard = async (req, res) => {
     let assignedRoute = null;
     if (assignedBus && assignedBus.routeId) {
       const route = assignedBus.routeId;
+      
+      // Parse stops properly
+      let parsedStops = [];
+      if (route.stops) {
+        try {
+          // If stops is a JSON string, parse it
+          if (typeof route.stops === 'string' && route.stops.trim()) {
+            parsedStops = JSON.parse(route.stops);
+          } else if (Array.isArray(route.stops)) {
+            parsedStops = route.stops;
+          }
+        } catch (error) {
+          console.error('Error parsing stops:', error);
+          parsedStops = [];
+        }
+      }
+      
       assignedRoute = {
         _id: route._id,
         routeName: route.routeName,
@@ -267,17 +284,10 @@ const getDriverDashboard = async (req, res) => {
         endPoint: route.endPoint,
         distance: route.distance,
         estimatedTime: route.estimatedTime,
-        startTime: route.startTime || '07:00 AM',
-        endTime: route.endTime || '06:00 PM',
+        startTime: route.startTime || route.departureTime || '07:00 AM',
+        endTime: route.endTime || route.arrivalTime || '06:00 PM',
         description: route.description,
-        stops: route.stopsDetails && route.stopsDetails.length > 0 
-          ? route.stopsDetails 
-          : route.stops 
-            ? route.stops.split(',').map((stop, index) => ({
-                stopName: stop.trim(),
-                timing: `${7 + Math.floor(index * 0.5)}:${(index * 30) % 60 < 10 ? '0' : ''}${(index * 30) % 60} AM`
-              }))
-            : []
+        stops: parsedStops
       };
     }
 

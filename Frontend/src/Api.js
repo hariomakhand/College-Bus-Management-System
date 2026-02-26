@@ -57,5 +57,6 @@ export const studentAPI = {
   getRoutes: () => StudentAPI.get('/routes'),
   applyForBus: (data) => StudentAPI.post('/apply-bus', data),
   getAnnouncements: () => StudentAPI.get('/announcements'),
-  getDashboard: () => StudentAPI.get('/dashboard')
+  getDashboard: () => StudentAPI.get('/dashboard'),
+  requestRouteChange: (data) => StudentAPI.post('/request-change', data)
 };

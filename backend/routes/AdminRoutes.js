@@ -36,7 +36,9 @@ const {
   updateRoute,
   assignBusToDriver,
   unassignBusFromDriver,
-  updateStudentBusAssignment
+  updateStudentBusAssignment,
+  getChangeRequests,
+  handleChangeRequest
 } = require("../controllers/AdminController");
 
 const router = express.Router();
@@ -82,6 +84,11 @@ router.post("/handle-registration", handleStudentRegistration);
 router.post("/handle-bus-request", handleBusRequest);
 router.post("/update-student-status", updateStudentStatus);
 router.put("/update-student-bus", updateStudentBusAssignment);
+
+// Change requests
+router.get("/change-requests", getChangeRequests);
+router.post("/handle-change-request", handleChangeRequest);
+
 // Test route
 router.post("/test-announcement", (req, res) => {
   console.log('Test announcement route hit');

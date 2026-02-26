@@ -43,8 +43,8 @@ export default function ForgotPassword() {
   return (
     <div className="h-screen bg-gradient-to-br from-gray-100 via-white to-gray-50 flex items-center justify-center p-4 overflow-hidden">
       <div className="absolute inset-0">
-        <div className="absolute top-20 left-10 w-32 h-32 bg-blue-200 bg-opacity-30 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-20 right-10 w-40 h-40 bg-indigo-200 bg-opacity-30 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-20 left-10 w-32 h-32 bg-yellow-200 bg-opacity-30 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-20 right-10 w-40 h-40 bg-gray-300 bg-opacity-30 rounded-full blur-3xl animate-pulse delay-1000"></div>
       </div>
       
       <motion.div 
@@ -55,7 +55,7 @@ export default function ForgotPassword() {
       >
         <div className="text-center mb-6">
           <h2 className="text-xl font-bold text-gray-800 mb-2">
-            Forgot <span className="text-blue-600">Password?</span>
+            Forgot <span className="text-yellow-600">Password?</span>
           </h2>
           <p className="text-gray-600 text-sm">Enter your email to reset your password</p>
         </div>
@@ -69,14 +69,14 @@ export default function ForgotPassword() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-3 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-gray-800 placeholder-gray-400 text-sm"
+              className="w-full px-3 py-3 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 outline-none text-gray-800 placeholder-gray-400 text-sm"
             />
           </div>
 
           <motion.button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold py-3 rounded-xl shadow-lg hover:shadow-xl transition-shadow disabled:opacity-50"
+            className="w-full bg-gradient-to-r from-yellow-500 to-gray-600 text-white font-bold py-3 rounded-xl shadow-lg hover:shadow-xl transition-shadow disabled:opacity-50"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
@@ -109,7 +109,7 @@ export default function ForgotPassword() {
         <div className="mt-4 pt-4 border-t border-gray-200 text-center space-y-2">
           <p className="text-gray-600 text-xs">
             Remember your password?{" "}
-            <Link to="/login" className="text-blue-600 hover:text-blue-700 font-medium">
+            <Link to="/login" className="text-yellow-600 hover:text-yellow-700 font-medium">
               Sign In
             </Link>
           </p>

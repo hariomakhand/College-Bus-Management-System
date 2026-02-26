@@ -37,6 +37,17 @@ const studentSchema = new mongoose.Schema({
     url: String,
     publicId: String
   },
+  // Change request
+  changeRequest: {
+    type: { type: String, enum: ['route', 'stop'] },
+    newRouteId: { type: mongoose.Schema.Types.ObjectId, ref: "Route" },
+    newPickupStop: { type: String },
+    reason: { type: String },
+    status: { type: String, enum: ['pending', 'approved', 'rejected'] },
+    requestDate: { type: Date },
+    responseDate: { type: Date },
+    adminResponse: { type: String }
+  },
   isVerified: { type: Boolean, default: false },
   emailVerificationCode: { type: String },
   emailVerificationExpiry: { type: Date },

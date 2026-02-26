@@ -63,8 +63,8 @@ export default function Signup() {
   return (
     <div className="h-screen bg-gradient-to-br from-gray-100 via-white to-gray-50 flex items-center justify-center p-4 overflow-hidden">
       <div className="absolute inset-0">
-        <div className="absolute top-20 left-10 w-32 h-32 bg-green-200 bg-opacity-30 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-20 right-10 w-40 h-40 bg-blue-200 bg-opacity-30 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-20 left-10 w-32 h-32 bg-yellow-200 bg-opacity-30 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-20 right-10 w-40 h-40 bg-gray-300 bg-opacity-30 rounded-full blur-3xl animate-pulse delay-1000"></div>
       </div>
       
       <motion.div 
@@ -75,7 +75,7 @@ export default function Signup() {
       >
         <div className="text-center mb-4">
           <h2 className="text-xl font-bold text-gray-800 mb-1">
-            Join <span className="text-blue-600">Smart Bus</span>
+            Join <span className="text-yellow-600">Smart Bus</span>
           </h2>
           <p className="text-gray-600 text-xs">Create your account today</p>
         </div>
@@ -90,7 +90,7 @@ export default function Signup() {
               value={formData.name}
               onChange={handleInputChange}
               required
-              className="w-full px-3 py-2.5 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-gray-800 placeholder-gray-400 text-sm"
+              className="w-full px-3 py-2.5 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 outline-none text-gray-800 placeholder-gray-400 text-sm"
             />
           </div>
 
@@ -103,7 +103,7 @@ export default function Signup() {
               value={formData.email}
               onChange={handleInputChange}
               required
-              className="w-full px-3 py-2.5 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-gray-800 placeholder-gray-400 text-sm"
+              className="w-full px-3 py-2.5 bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 outline-none text-gray-800 placeholder-gray-400 text-sm"
             />
           </div>
 
@@ -117,7 +117,7 @@ export default function Signup() {
                 value={formData.password}
                 onChange={handleInputChange}
                 required
-                className={`w-full px-3 py-2.5 pr-10 bg-white border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-gray-800 placeholder-gray-400 text-sm ${
+                className={`w-full px-3 py-2.5 pr-10 bg-white border rounded-xl focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 outline-none text-gray-800 placeholder-gray-400 text-sm ${
                   errors.password ? 'border-red-500' : 'border-gray-300'
                 }`}
               />
@@ -144,7 +144,7 @@ export default function Signup() {
                 value={formData.confirmPassword}
                 onChange={handleInputChange}
                 required
-                className={`w-full px-3 py-2.5 pr-10 bg-white border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-gray-800 placeholder-gray-400 text-sm ${
+                className={`w-full px-3 py-2.5 pr-10 bg-white border rounded-xl focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 outline-none text-gray-800 placeholder-gray-400 text-sm ${
                   errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
                 }`}
               />
@@ -163,7 +163,7 @@ export default function Signup() {
 
           <motion.button
             type="submit"
-            className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold py-2.5 rounded-xl shadow-lg hover:shadow-xl transition-shadow"
+            className="w-full bg-gradient-to-r from-yellow-500 to-gray-600 text-white font-bold py-2.5 rounded-xl shadow-lg hover:shadow-xl transition-shadow"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
@@ -174,7 +174,7 @@ export default function Signup() {
         <div className="mt-3 pt-3 border-t border-gray-200 text-center space-y-1">
           <p className="text-gray-600 text-xs">
             Already have an account?{" "}
-            <Link to="/login" className="text-blue-600 hover:text-blue-700 font-medium">
+            <Link to="/login" className="text-yellow-600 hover:text-yellow-700 font-medium">
               Sign In
             </Link>
           </p>

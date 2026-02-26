@@ -4,6 +4,124 @@ const Route = require('../models/Route');
 const Driver = require('../models/Driver');
 const Announcement = require('../models/Announcement');
 
+// Calculate time for new stop
+const calculateStopTime = (route, newStopCoords) => {
+  const toRad = (deg) => deg * (Math.PI / 180);
+  
+  const getDistance = (lat1, lon1, lat2, lon2) => {
+    const R = 6371;
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+              Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  };
+
+  let stops = [];
+  try {
+    stops = JSON.parse(route.stops || '[]');
+  } catch (e) {
+    stops = [];
+  }
+  
+  // Filter stops with valid coordinates and time
+  const validStops = stops.filter(s => s.coordinates && s.time && s.time !== 'TBD');
+  
+  if (validStops.length === 0) {
+    // No valid stops, use route departure time
+    if (route.departureTime && route.estimatedTime) {
+      const [depHour, depMin] = route.departureTime.split(':').map(Number);
+      const depMinutes = depHour * 60 + depMin;
+      const avgTimePerStop = route.estimatedTime / (stops.length + 1);
+      const newStopMinutes = Math.round(depMinutes + avgTimePerStop);
+      
+      const hour = Math.floor(newStopMinutes / 60) % 24;
+      const min = newStopMinutes % 60;
+      return `${String(hour).padStart(2, '0')}:${String(min).padStart(2, '0')}`;
+    }
+    return null;
+  }
+  
+  // Find closest stops before and after
+  let closestBefore = null, closestAfter = null;
+  let minDistBefore = Infinity, minDistAfter = Infinity;
+  
+  validStops.forEach(stop => {
+    const dist = getDistance(
+      stop.coordinates.lat, stop.coordinates.lng,
+      newStopCoords.lat, newStopCoords.lng
+    );
+    
+    if (dist < minDistBefore) {
+      minDistBefore = dist;
+      closestBefore = stop;
+    }
+  });
+  
+  // Find another stop for reference
+  validStops.forEach(stop => {
+    if (stop !== closestBefore) {
+      const dist = getDistance(
+        stop.coordinates.lat, stop.coordinates.lng,
+        newStopCoords.lat, newStopCoords.lng
+      );
+      if (dist < minDistAfter) {
+        minDistAfter = dist;
+        closestAfter = stop;
+      }
+    }
+  });
+  
+  if (closestBefore && closestAfter) {
+    // Calculate based on two reference stops
+    const distToBefore = getDistance(
+      closestBefore.coordinates.lat, closestBefore.coordinates.lng,
+      newStopCoords.lat, newStopCoords.lng
+    );
+    const distToAfter = getDistance(
+      newStopCoords.lat, newStopCoords.lng,
+      closestAfter.coordinates.lat, closestAfter.coordinates.lng
+    );
+    const totalDist = distToBefore + distToAfter;
+    
+    const [beforeHour, beforeMin] = closestBefore.time.split(':').map(Number);
+    const [afterHour, afterMin] = closestAfter.time.split(':').map(Number);
+    const beforeMinutes = beforeHour * 60 + beforeMin;
+    const afterMinutes = afterHour * 60 + afterMin;
+    const timeDiff = Math.abs(afterMinutes - beforeMinutes);
+    
+    const avgSpeed = totalDist / (timeDiff / 60) || 30; // Default 30 km/h
+    const timeToNewStop = (distToBefore / avgSpeed) * 60;
+    const newStopMinutes = Math.round(beforeMinutes + timeToNewStop);
+    
+    const hour = Math.floor(newStopMinutes / 60) % 24;
+    const min = newStopMinutes % 60;
+    return `${String(hour).padStart(2, '0')}:${String(min).padStart(2, '0')}`;
+  } else if (closestBefore) {
+    // Only one reference stop - calculate based on distance
+    const distToNewStop = getDistance(
+      closestBefore.coordinates.lat, closestBefore.coordinates.lng,
+      newStopCoords.lat, newStopCoords.lng
+    );
+    
+    // Use average city bus speed of 25 km/h
+    const avgSpeed = 25;
+    const timeToNewStop = (distToNewStop / avgSpeed) * 60; // minutes
+    
+    const [hour, min] = closestBefore.time.split(':').map(Number);
+    const minutes = hour * 60 + min + Math.round(timeToNewStop);
+    const newHour = Math.floor(minutes / 60) % 24;
+    const newMin = minutes % 60;
+    
+    console.log(`Distance-based calculation: ${distToNewStop.toFixed(2)} km at ${avgSpeed} km/h = ${timeToNewStop.toFixed(1)} min`);
+    return `${String(newHour).padStart(2, '0')}:${String(newMin).padStart(2, '0')}`;
+  }
+  
+  return null;
+};
+
 // Get Student Dashboard Data
 const getStudentDashboard = async (req, res) => {
   try {
@@ -27,7 +145,7 @@ const getStudentDashboard = async (req, res) => {
           _id: student.busId,
           isDeleted: false
         })
-          .populate('routeId', 'routeName routeNumber startPoint endPoint')
+          .populate('routeId') // Populate all route fields
           .populate('driverId', 'name phoneNumber profileImage');
         
         if (assignedBus) {
@@ -44,6 +162,34 @@ const getStudentDashboard = async (req, res) => {
       // Fallback: if no busId but has appliedRouteId, get route info
       if (!assignedRoute && student.appliedRouteId) {
         assignedRoute = await Route.findById(student.appliedRouteId);
+      }
+      
+      // Auto-recalculate TBD times if route has coordinates
+      if (assignedRoute && assignedRoute.stops) {
+        try {
+          let stops = JSON.parse(assignedRoute.stops);
+          let needsUpdate = false;
+          
+          for (let i = 0; i < stops.length; i++) {
+            if (stops[i].time === 'TBD' && stops[i].coordinates) {
+              const calculatedTime = calculateStopTime(assignedRoute, stops[i].coordinates);
+              if (calculatedTime) {
+                stops[i].time = calculatedTime;
+                needsUpdate = true;
+                console.log(`Auto-calculated time for ${stops[i].name}: ${calculatedTime}`);
+              }
+            }
+          }
+          
+          if (needsUpdate) {
+            await Route.findByIdAndUpdate(assignedRoute._id, { 
+              stops: JSON.stringify(stops) 
+            });
+            assignedRoute.stops = JSON.stringify(stops);
+          }
+        } catch (e) {
+          console.error('Error auto-calculating stop times:', e);
+        }
       }
     }
 
@@ -97,6 +243,9 @@ const getStudentDashboard = async (req, res) => {
             routeNumber: assignedRoute.routeNumber,
             startPoint: assignedRoute.startPoint,
             endPoint: assignedRoute.endPoint,
+            stops: assignedRoute.stops || '',
+            distance: assignedRoute.distance,
+            estimatedTime: assignedRoute.estimatedTime,
             pickupTime: '8:00 AM',
             dropTime: '5:00 PM'
           } : null,
@@ -287,30 +436,70 @@ const applyForBus = async (req, res) => {
       });
     }
 
+    // Handle pickupStop - can be string or object
+    let stopName = typeof pickupStop === 'object' ? pickupStop.name : pickupStop;
+    let stopCoordinates = typeof pickupStop === 'object' ? pickupStop.coordinates : null;
+    let estimatedTime = null;
+
+    console.log('=== APPLY FOR BUS DEBUG ===');
+    console.log('Pickup stop:', pickupStop);
+    console.log('Stop name:', stopName);
+    console.log('Stop coordinates:', stopCoordinates);
+    console.log('Route stops:', route.stops);
+
     // Check if pickup stop exists in route stops
-    const routeStops = route.stops ? route.stops.split(',').map(stop => stop.trim().toLowerCase()) : [];
-    const pickupStopLower = pickupStop.toLowerCase().trim();
+    let routeStops = [];
+    try {
+      routeStops = JSON.parse(route.stops || '[]');
+      console.log('Parsed route stops:', routeStops);
+    } catch (e) {
+      routeStops = route.stops ? route.stops.split(',').map(s => ({ name: s.trim() })) : [];
+      console.log('Fallback parsed stops:', routeStops);
+    }
     
-    if (!routeStops.includes(pickupStopLower)) {
-      // If stop doesn't exist, add it to the route
-      const updatedStops = route.stops ? `${route.stops}, ${pickupStop}` : pickupStop;
-      await Route.findByIdAndUpdate(routeId, { stops: updatedStops });
+    const existingStop = routeStops.find(s => s.name && s.name.toLowerCase() === stopName.toLowerCase());
+    console.log('Existing stop found:', existingStop);
+    
+    if (!existingStop && stopCoordinates) {
+      console.log('Adding new stop with coordinates...');
+      // Calculate estimated time for new stop
+      estimatedTime = calculateStopTime(route, stopCoordinates);
+      console.log('Calculated time:', estimatedTime);
       
-      console.log(`Added new bus stop '${pickupStop}' to route ${route.routeName}`);
+      // Add new stop to route
+      const newStop = {
+        name: stopName,
+        coordinates: stopCoordinates,
+        time: estimatedTime || 'TBD'
+      };
+      routeStops.push(newStop);
+      await Route.findByIdAndUpdate(routeId, { stops: JSON.stringify(routeStops) });
+      
+      console.log(`Added new bus stop '${stopName}' at ${estimatedTime || 'TBD'} to route ${route.routeName}`);
+    } else if (existingStop) {
+      estimatedTime = existingStop.time;
+      console.log('Using existing stop time:', estimatedTime);
+    } else {
+      console.log('No coordinates provided for new stop');
     }
 
     // Update student with application details
     student.busRegistrationStatus = 'pending';
     student.appliedRouteId = routeId;
-    student.preferredPickupStop = pickupStop;
+    student.preferredPickupStop = stopName;
     student.applicationReason = reason;
     student.applicationDate = new Date();
     
     await student.save({ validateBeforeSave: false });
 
+    const message = estimatedTime 
+      ? `Bus application submitted! Bus will arrive at ${stopName} at approximately ${estimatedTime}.`
+      : 'Bus application submitted successfully.';
+
     res.json({
       success: true,
-      message: 'Bus application submitted successfully. Your pickup stop has been added to the route if it was new.'
+      message,
+      estimatedTime
     });
   } catch (error) {
     console.error('Apply for bus error:', error);
@@ -469,6 +658,91 @@ const getStudentAnnouncements = async (req, res) => {
   }
 };
 
+// Request Route/Stop Change
+const requestRouteChange = async (req, res) => {
+  try {
+    const { newRouteId, newPickupStop, reason } = req.body;
+    const student = await Student.findById(req.user.id);
+
+    if (!student) {
+      return res.status(404).json({ success: false, message: 'Student not found' });
+    }
+
+    if (student.busRegistrationStatus !== 'approved') {
+      return res.status(400).json({ success: false, message: 'You must have an approved bus assignment first' });
+    }
+
+    // Validate new route
+    const newRoute = await Route.findById(newRouteId);
+    if (!newRoute || newRoute.isDeleted) {
+      return res.status(404).json({ success: false, message: 'Route not found' });
+    }
+
+    // Update student with change request
+    student.changeRequest = {
+      type: newRouteId !== student.appliedRouteId ? 'route' : 'stop',
+      newRouteId,
+      newPickupStop,
+      reason,
+      status: 'pending',
+      requestDate: new Date()
+    };
+
+    await student.save({ validateBeforeSave: false });
+
+    res.json({
+      success: true,
+      message: 'Change request submitted successfully. Admin will review it soon.'
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Recalculate times for stops with TBD
+const recalculateStopTimes = async (req, res) => {
+  try {
+    const { routeId } = req.params;
+    
+    const route = await Route.findById(routeId);
+    if (!route) {
+      return res.status(404).json({ success: false, message: 'Route not found' });
+    }
+
+    let stops = [];
+    try {
+      stops = JSON.parse(route.stops || '[]');
+    } catch (e) {
+      return res.status(400).json({ success: false, message: 'Invalid stops format' });
+    }
+
+    let updated = false;
+    for (let i = 0; i < stops.length; i++) {
+      if (stops[i].time === 'TBD' && stops[i].coordinates) {
+        const calculatedTime = calculateStopTime(route, stops[i].coordinates);
+        if (calculatedTime) {
+          stops[i].time = calculatedTime;
+          updated = true;
+          console.log(`Updated time for ${stops[i].name}: ${calculatedTime}`);
+        }
+      }
+    }
+
+    if (updated) {
+      await Route.findByIdAndUpdate(routeId, { stops: JSON.stringify(stops) });
+      return res.json({ 
+        success: true, 
+        message: 'Stop times recalculated successfully',
+        stops 
+      });
+    }
+
+    res.json({ success: true, message: 'No stops needed recalculation', stops });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   getStudentDashboard,
   getStudentProfile,
@@ -478,5 +752,7 @@ module.exports = {
   getAvailableRoutes,
   sendSupportMessage,
   getBusPass,
-  getStudentAnnouncements
+  getStudentAnnouncements,
+  requestRouteChange,
+  recalculateStopTimes
 };

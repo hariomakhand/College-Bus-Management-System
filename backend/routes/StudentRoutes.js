@@ -8,7 +8,8 @@ const {
   getAvailableRoutes,
   sendSupportMessage,
   getBusPass,
-  getStudentAnnouncements
+  getStudentAnnouncements,
+  requestRouteChange
 } = require('../controllers/StudentController');
 const AuthProtect = require('../middlewares/AuthProtect');
 const { upload } = require('../config/multer');
@@ -130,5 +131,8 @@ router.post('/support', AuthProtect, sendSupportMessage);
 
 // Announcements
 router.get('/announcements', AuthProtect, getStudentAnnouncements);
+
+// Route/Stop change request
+router.post('/request-change', AuthProtect, requestRouteChange);
 
 module.exports = router;

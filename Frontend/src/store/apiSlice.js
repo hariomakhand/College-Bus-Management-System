@@ -111,6 +111,14 @@ export const apiSlice = createApi({
       }),
       invalidatesTags: ['Route'],
     }),
+    updateRoute: builder.mutation({
+      query: ({ id, ...routeData }) => ({
+        url: `/admin/routes/${id}`,
+        method: 'PUT',
+        body: routeData,
+      }),
+      invalidatesTags: ['Route'],
+    }),
     // Students endpoints
     getStudents: builder.query({
       query: () => '/admin/students',
@@ -310,6 +318,28 @@ export const apiSlice = createApi({
       query: () => '/student/announcements',
       providesTags: ['Notification'],
     }),
+    requestRouteChange: builder.mutation({
+      query: (changeData) => ({
+        url: '/student/request-change',
+        method: 'POST',
+        body: changeData,
+      }),
+      invalidatesTags: ['User'],
+    }),
+    // Change requests
+    getChangeRequests: builder.query({
+      query: () => '/admin/change-requests',
+      providesTags: ['Student'],
+      transformResponse: (response) => response.changeRequests || response,
+    }),
+    handleChangeRequest: builder.mutation({
+      query: (data) => ({
+        url: '/admin/handle-change-request',
+        method: 'POST',
+        body: data,
+      }),
+      invalidatesTags: ['Student'],
+    }),
     // Driver endpoints
     getDriverDashboard: builder.query({
       query: () => '/driver/dashboard',
@@ -363,6 +393,7 @@ export const {
   useGetBusesQuery,
   useAddBusMutation,
   useDeleteBusMutation,
+  useUpdateBusMutation,
   useGetDriversQuery,
   useAddDriverMutation,
   useDeleteDriverMutation,
@@ -370,6 +401,7 @@ export const {
   useGetRoutesQuery,
   useAddRouteMutation,
   useDeleteRouteMutation,
+  useUpdateRouteMutation,
   useGetStudentsQuery,
   useGetPendingRegistrationsQuery,
   useGetBusRequestsQuery,
@@ -381,7 +413,6 @@ export const {
   useAddStudentMutation,
   useDeleteStudentMutation,
   useUpdateBusStatusMutation,
-  useUpdateBusMutation,
   useAssignBusToDriverMutation,
   useUnassignBusFromDriverMutation,
   useAssignRouteToDriverMutation,
@@ -399,6 +430,9 @@ export const {
   useSendSupportMessageMutation,
   useGetStudentBusPassQuery,
   useGetStudentAnnouncementsQuery,
+  useRequestRouteChangeMutation,
+  useGetChangeRequestsQuery,
+  useHandleChangeRequestMutation,
   useGetDriverDashboardQuery,
   useUpdateDriverProfileMutation,
   useUpdateDriverLocationMutation,
