@@ -346,29 +346,31 @@ const StudentPanel = () => {
 
       {/* Main Content */}
       {student?.busRegistrationStatus === 'approved' ? (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
-            {/* Change Request Status */}
-            {student?.changeRequest && student.changeRequest.status === 'pending' && (
-            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg">
-              <div className="flex items-start">
-                <AlertTriangle className="text-yellow-600 mr-3 mt-0.5" size={20} />
-                <div className="flex-1">
-                  <h4 className="font-semibold text-yellow-800 mb-1">Change Request Pending</h4>
-                  <p className="text-sm text-yellow-700 mb-2">
-                    Your {student.changeRequest.type} change request is under review.
-                  </p>
-                  <div className="text-xs text-yellow-600">
-                    <p><strong>New Stop:</strong> {student.changeRequest.newPickupStop}</p>
-                    <p><strong>Reason:</strong> {student.changeRequest.reason}</p>
-                    <p><strong>Requested:</strong> {new Date(student.changeRequest.requestDate).toLocaleDateString()}</p>
-                  </div>
+        <div className="space-y-6">
+          {/* Change Request Status */}
+          {student?.changeRequest && student.changeRequest.status === 'pending' && (
+          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg">
+            <div className="flex items-start">
+              <AlertTriangle className="text-yellow-600 mr-3 mt-0.5" size={20} />
+              <div className="flex-1">
+                <h4 className="font-semibold text-yellow-800 mb-1">Change Request Pending</h4>
+                <p className="text-sm text-yellow-700 mb-2">
+                  Your {student.changeRequest.type} change request is under review.
+                </p>
+                <div className="text-xs text-yellow-600">
+                  <p><strong>New Stop:</strong> {student.changeRequest.newPickupStop}</p>
+                  <p><strong>Reason:</strong> {student.changeRequest.reason}</p>
+                  <p><strong>Requested:</strong> {new Date(student.changeRequest.requestDate).toLocaleDateString()}</p>
                 </div>
               </div>
             </div>
-          )}
+          </div>
+        )}
 
-          {/* Bus Information */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+          {/* Left Column - Bus Information */}
+          <div className="lg:col-span-2 space-y-6">
           <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
             <div className="bg-gradient-to-r from-yellow-50 to-yellow-100 p-6 border-b border-gray-100">
               <div className="flex items-center justify-between">
@@ -388,112 +390,109 @@ const StudentPanel = () => {
             </div>
             
             <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
                 {/* Bus Details */}
-                <div className="space-y-4">
-                  <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 p-4 rounded-xl">
-                    <div className="flex items-center gap-3 mb-3">
-                      <Bus className="text-yellow-600" size={20} />
-                      <span className="font-semibold text-gray-900">Bus Information</span>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Bus Number:</span>
-                        <span className="font-bold text-gray-900">{student?.assignedBus?.busNumber || 'BUS-001'}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Model:</span>
-                        <span className="font-medium text-gray-900">{student?.assignedBus?.model || 'Volvo B7R'}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Capacity:</span>
-                        <span className="font-medium text-gray-900">{student?.assignedBus?.capacity || 45} seats</span>
-                      </div>
-                    </div>
+                <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 p-4 rounded-xl">
+                  <div className="flex items-center gap-3 mb-3">
+                    <Bus className="text-yellow-600" size={20} />
+                    <span className="font-semibold text-gray-900">Bus Information</span>
                   </div>
-                  
-                  {/* Route Details */}
-                  <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-xl">
-                    <div className="flex items-center gap-3 mb-3">
-                      <MapPin className="text-green-600" size={20} />
-                      <span className="font-semibold text-gray-900">Route Information</span>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Bus Number:</span>
+                      <span className="font-bold text-gray-900">{student?.assignedBus?.busNumber || 'BUS-001'}</span>
                     </div>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Route:</span>
-                        <span className="font-bold text-gray-900">{student?.assignedRoute?.routeName || 'Main Campus Route'}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Pickup Stop:</span>
-                        <span className="font-medium text-green-700">{student?.preferredPickupStop || 'Main Gate'}</span>
-                      </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Model:</span>
+                      <span className="font-medium text-gray-900">{student?.assignedBus?.model || 'Volvo B7R'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Capacity:</span>
+                      <span className="font-medium text-gray-900">{student?.assignedBus?.capacity || 45} seats</span>
                     </div>
                   </div>
                 </div>
                 
-                {/* Driver Details */}
-                <div className="space-y-4">
-                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-xl">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
-                        {student?.assignedDriver?.profileImage?.url ? (
-                          <img 
-                            src={student.assignedDriver.profileImage.url} 
-                            alt={student.assignedDriver.name} 
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <User className="text-gray-400" size={16} />
-                        )}
-                      </div>
-                      <span className="font-semibold text-gray-900">Your Driver</span>
+                {/* Route Details */}
+                <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-xl">
+                  <div className="flex items-center gap-3 mb-3">
+                    <MapPin className="text-green-600" size={20} />
+                    <span className="font-semibold text-gray-900">Route Information</span>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Route:</span>
+                      <span className="font-bold text-gray-900">{student?.assignedRoute?.routeName || 'Main Campus Route'}</span>
                     </div>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Name:</span>
-                        <span className="font-bold text-gray-900">{student?.assignedDriver?.name || 'John Doe'}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Phone:</span>
-                        <span className="font-medium text-blue-600">{student?.assignedDriver?.phone || '+1 234 567 8900'}</span>
-                      </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Pickup Stop:</span>
+                      <span className="font-medium text-green-700">{student?.preferredPickupStop || 'Main Gate'}</span>
                     </div>
                   </div>
-                  
-                  {/* Quick Actions */}
-                  <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-xl">
-                    <h4 className="font-semibold text-gray-900 mb-3">Quick Actions</h4>
-                    <div className="space-y-2">
-                      <button 
-                        onClick={() => setActiveTab('tracking')}
-                        className="w-full flex items-center gap-2 px-3 py-2 bg-white hover:bg-yellow-50 rounded-lg transition-colors text-sm font-medium text-gray-700"
-                      >
-                        <Navigation size={16} className="text-yellow-600" />
-                        Track Bus Live
-                      </button>
-                      <button 
-                        onClick={() => setShowChangeModal(true)}
-                        disabled={student?.changeRequest?.status === 'pending'}
-                        className="w-full flex items-center gap-2 px-3 py-2 bg-white hover:bg-yellow-50 rounded-lg transition-colors text-sm font-medium text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <Route size={16} className="text-yellow-600" />
-                        {student?.changeRequest?.status === 'pending' ? 'Change Pending' : 'Change Route/Stop'}
-                      </button>
-                      <button 
-                        onClick={() => setActiveTab('support')}
-                        className="w-full flex items-center gap-2 px-3 py-2 bg-white hover:bg-yellow-50 rounded-lg transition-colors text-sm font-medium text-gray-700"
-                      >
-                        <MessageSquare size={16} className="text-yellow-600" />
-                        Contact Support
-                      </button>
+                </div>
+
+                {/* Driver Details */}
+                <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-xl">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
+                      {student?.assignedDriver?.profileImage?.url ? (
+                        <img 
+                          src={student.assignedDriver.profileImage.url} 
+                          alt={student.assignedDriver.name} 
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <User className="text-gray-400" size={16} />
+                      )}
                     </div>
+                    <span className="font-semibold text-gray-900">Your Driver</span>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Name:</span>
+                      <span className="font-bold text-gray-900">{student?.assignedDriver?.name || 'John Doe'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Phone:</span>
+                      <span className="font-medium text-blue-600">{student?.assignedDriver?.phone || '+1 234 567 8900'}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Quick Actions */}
+                <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-xl">
+                  <h4 className="font-semibold text-gray-900 mb-3">Quick Actions</h4>
+                  <div className="space-y-2">
+                    <button 
+                      onClick={() => setActiveTab('tracking')}
+                      className="w-full flex items-center gap-2 px-3 py-2 bg-white hover:bg-yellow-50 rounded-lg transition-colors text-sm font-medium text-gray-700"
+                    >
+                      <Navigation size={16} className="text-yellow-600" />
+                      Track Bus Live
+                    </button>
+                    <button 
+                      onClick={() => setShowChangeModal(true)}
+                      disabled={student?.changeRequest?.status === 'pending'}
+                      className="w-full flex items-center gap-2 px-3 py-2 bg-white hover:bg-yellow-50 rounded-lg transition-colors text-sm font-medium text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Route size={16} className="text-yellow-600" />
+                      {student?.changeRequest?.status === 'pending' ? 'Change Pending' : 'Change Route/Stop'}
+                    </button>
+                    <button 
+                      onClick={() => setActiveTab('support')}
+                      className="w-full flex items-center gap-2 px-3 py-2 bg-white hover:bg-yellow-50 rounded-lg transition-colors text-sm font-medium text-gray-700"
+                    >
+                      <MessageSquare size={16} className="text-yellow-600" />
+                      Contact Support
+                    </button>
                   </div>
                 </div>
               </div>
             </div>
           </div>
+        </div>
           
-          {/* Sidebar */}
+          {/* Right Column - Sidebar */}
           <div className="space-y-6">
             {/* Today's Schedule */}
             <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
@@ -987,28 +986,11 @@ const StudentPanel = () => {
   };
 
   const renderTracking = () => {
-    // Get bus number from assigned bus or assigned driver's bus
     const busNumber = student?.assignedBus?.busNumber || student?.assignedDriver?.assignedBus?.busNumber;
-    
-    console.log('Student tracking debug:', {
-      studentId: student?._id,
-      busRegistrationStatus: student?.busRegistrationStatus,
-      assignedBus: student?.assignedBus,
-      assignedDriver: student?.assignedDriver,
-      finalBusNumber: busNumber
-    });
     
     return (
       <div className="space-y-6">
         <h2 className="text-2xl font-bold text-gray-900">Live Bus Tracking</h2>
-        
-        {/* Debug Info */}
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <h3 className="font-semibold text-yellow-800 mb-2">Debug Info:</h3>
-          <p className="text-sm text-yellow-700">Status: {student?.busRegistrationStatus || 'Not set'}</p>
-          <p className="text-sm text-yellow-700">Bus Number: {busNumber || 'Not found'}</p>
-          <p className="text-sm text-yellow-700">Student ID: {student?._id || 'Not found'}</p>
-        </div>
         
         {student?.busRegistrationStatus === 'approved' && busNumber ? (
           <div className="space-y-4">

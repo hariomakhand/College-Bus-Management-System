@@ -21,15 +21,32 @@ export const calculateETA = (distanceKm, avgSpeedKmh = 25) => {
 // Get bus distance and ETA to student's stop
 export const getBusDistanceToStop = (busLocation, studentStop) => {
   if (!busLocation || !studentStop || !studentStop.coordinates) {
-    return null;
+    return {
+      distance: '0',
+      eta: 0,
+      isNear: false,
+      isVeryNear: false,
+      shouldNotify: false
+    };
   }
 
-  const distance = calculateDistance(
-    busLocation.lat,
-    busLocation.lng,
-    studentStop.coordinates.lat,
-    studentStop.coordinates.lng
-  );
+  // Validate coordinates
+  const busLat = parseFloat(busLocation.lat);
+  const busLng = parseFloat(busLocation.lng);
+  const stopLat = parseFloat(studentStop.coordinates.lat);
+  const stopLng = parseFloat(studentStop.coordinates.lng);
+
+  if (isNaN(busLat) || isNaN(busLng) || isNaN(stopLat) || isNaN(stopLng)) {
+    return {
+      distance: '0',
+      eta: 0,
+      isNear: false,
+      isVeryNear: false,
+      shouldNotify: false
+    };
+  }
+
+  const distance = calculateDistance(busLat, busLng, stopLat, stopLng);
 
   const eta = calculateETA(distance);
 
@@ -44,10 +61,12 @@ export const getBusDistanceToStop = (busLocation, studentStop) => {
 
 // Format ETA message
 export const formatETAMessage = (eta) => {
-  if (eta < 1) return 'Arriving now!';
-  if (eta === 1) return '1 minute away';
-  if (eta < 60) return `${eta} minutes away`;
-  const hours = Math.floor(eta / 60);
-  const mins = eta % 60;
-  return `${hours}h ${mins}m away`;
+  const etaNum = parseInt(eta);
+  if (isNaN(etaNum) || etaNum <= 0) return '0 min';
+  if (etaNum < 1) return 'Arriving now!';
+  if (etaNum === 1) return '1 min';
+  if (etaNum < 60) return `${etaNum} min`;
+  const hours = Math.floor(etaNum / 60);
+  const mins = etaNum % 60;
+  return `${hours}h ${mins}m`;
 };

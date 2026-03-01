@@ -142,17 +142,27 @@ const LiveTrackingMap = ({ route, busNumber, driverId, socket }) => {
     navigator.geolocation.getCurrentPosition(
       (position) => {
         console.log('✅ GPS permission granted!');
+        const { latitude, longitude, accuracy, speed, heading } = position.coords;
+        
+        // Check initial accuracy
+        if (accuracy > 50000) {
+          alert(`GPS accuracy too poor (±${Math.round(accuracy/1000)}km). Please:\n1. Enable GPS/Location Services\n2. Go outside or near a window\n3. Wait for better signal\n4. Try again`);
+          setTripStatus('idle');
+          setIsTracking(false);
+          return;
+        }
+        
         const initialLocation = {
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-          accuracy: position.coords.accuracy,
-          speed: position.coords.speed || 0,
-          heading: position.coords.heading || 0,
+          lat: latitude,
+          lng: longitude,
+          accuracy: accuracy,
+          speed: speed || 0,
+          heading: heading || 0,
           timestamp: new Date().toISOString(),
           isGPS: true
         };
         
-        console.log('📍 Initial GPS location:', initialLocation);
+        console.log(`📍 Initial GPS location: ±${Math.round(accuracy)}m accuracy`);
         setBusLocation(initialLocation);
         updateLocationToBackend(initialLocation);
         
@@ -160,6 +170,12 @@ const LiveTrackingMap = ({ route, busNumber, driverId, socket }) => {
         watchId.current = navigator.geolocation.watchPosition(
           (position) => {
             const { latitude, longitude, accuracy, speed, heading } = position.coords;
+            
+            // Filter out extremely poor readings
+            if (accuracy > 50000) {
+              console.log(`⚠️ Skipping poor GPS reading: ±${Math.round(accuracy/1000)}km`);
+              return;
+            }
             
             const newLocation = {
               lat: latitude,
@@ -171,21 +187,22 @@ const LiveTrackingMap = ({ route, busNumber, driverId, socket }) => {
               isGPS: true
             };
             
-            console.log(`🔄 GPS Update: ${latitude}, ${longitude} (±${Math.round(accuracy)}m)`);
+            console.log(`🔄 GPS Update: ${latitude.toFixed(6)}, ${longitude.toFixed(6)} (±${Math.round(accuracy)}m)`);
             setBusLocation(newLocation);
             updateLocationToBackend(newLocation);
           },
           (error) => {
             console.error('❌ GPS tracking error:', error);
-            if (error.code !== 3) { // Not timeout
-              alert('GPS tracking failed. Please check your location settings.');
+            if (error.code === 1) { // Permission denied
+              alert('GPS permission denied. Please enable location access.');
               stopTracking();
             }
+            // Ignore timeout errors (code 3) - they're common and tracking continues
           },
           {
             enableHighAccuracy: true,
-            timeout: 10000,
-            maximumAge: 5000
+            timeout: 20000,
+            maximumAge: 10000
           }
         );
       },
@@ -200,23 +217,23 @@ const LiveTrackingMap = ({ route, busNumber, driverId, socket }) => {
         
         switch(error.code) {
           case 1:
-            errorMessage = 'Location access denied. Please allow location permission in your browser settings and try again.';
+            errorMessage = 'Location access denied. Please:\n1. Click the location icon in address bar\n2. Select "Allow"\n3. Refresh and try again';
             break;
           case 2:
-            errorMessage = 'Location unavailable. Please check your GPS settings and try again.';
+            errorMessage = 'GPS unavailable. Please:\n1. Enable Location Services\n2. Enable GPS (High Accuracy mode)\n3. Go outside or near a window\n4. Try again';
             break;
           case 3:
-            errorMessage = 'Location request timeout. Please try again.';
+            errorMessage = 'GPS timeout. Please:\n1. Check GPS is enabled\n2. Ensure good signal\n3. Try again';
             break;
           default:
-            errorMessage = 'Unknown GPS error occurred. Please try again.';
+            errorMessage = 'GPS error. Please check your device settings.';
         }
         
         alert(errorMessage);
       },
       {
         enableHighAccuracy: true,
-        timeout: 15000,
+        timeout: 30000,
         maximumAge: 0
       }
     );
@@ -389,6 +406,24 @@ const LiveTrackingMap = ({ route, busNumber, driverId, socket }) => {
           </div>
         </div>
       )}
+      
+      {/* GPS Tips */}
+      {!isTracking && (
+        <div className="p-4 rounded-lg border-l-4 bg-blue-50 border-blue-400 text-blue-700">
+          <div className="flex items-start space-x-2">
+            <Navigation className="mt-0.5 flex-shrink-0" size={16} />
+            <div className="text-sm">
+              <strong>For Best GPS Accuracy:</strong>
+              <ul className="mt-2 ml-4 list-disc space-y-1">
+                <li>Enable GPS/Location Services on your device</li>
+                <li>Use "High Accuracy" or "Device Only" mode</li>
+                <li>Go outside or near a window for better signal</li>
+                <li>Wait a few seconds for GPS to lock on</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Controls */}
       <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
         <div className="flex items-center space-x-4">
@@ -490,9 +525,16 @@ const LiveTrackingMap = ({ route, busNumber, driverId, socket }) => {
             </div>
             <div>
               <span className="font-medium text-gray-600">Accuracy:</span>
-              <p className={`${busLocation.accuracy <= 20 ? 'text-green-600' : 
-                busLocation.accuracy <= 50 ? 'text-blue-600' : 'text-orange-600'}`}>
+              <p className={`font-semibold ${
+                busLocation.accuracy <= 20 ? 'text-green-600' : 
+                busLocation.accuracy <= 100 ? 'text-blue-600' : 
+                busLocation.accuracy <= 1000 ? 'text-orange-600' : 'text-red-600'
+              }`}>
                 ±{Math.round(busLocation.accuracy)}m
+                {busLocation.accuracy <= 20 && ' ✅'}
+                {busLocation.accuracy > 20 && busLocation.accuracy <= 100 && ' 🟢'}
+                {busLocation.accuracy > 100 && busLocation.accuracy <= 1000 && ' 🟡'}
+                {busLocation.accuracy > 1000 && ' ⚠️'}
               </p>
             </div>
             <div>

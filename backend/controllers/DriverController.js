@@ -37,9 +37,15 @@ const updateBusLocation = async (req, res) => {
       console.log(`Rejected extremely poor GPS reading for bus ${busNumber}: ±${Math.round(accuracy)}m accuracy`);
       return res.status(400).json({
         success: false,
-        message: `GPS accuracy too poor: ±${Math.round(accuracy)}m. Need ≤50km for tracking.`,
-        accuracy: Math.round(accuracy)
+        message: `GPS accuracy too poor: ±${Math.round(accuracy/1000)}km. Please enable GPS and ensure good signal.`,
+        accuracy: Math.round(accuracy),
+        suggestion: 'Enable GPS/Location Services and go outside or near a window for better signal'
       });
+    }
+    
+    // Warn about poor accuracy but still accept
+    if (accuracy > 1000) {
+      console.log(`⚠️ Poor GPS accuracy for bus ${busNumber}: ±${Math.round(accuracy)}m`);
     }
 
     // Store validated location
