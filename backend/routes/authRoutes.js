@@ -35,7 +35,8 @@ router.post("/logout", (req, res) => {
     res.clearCookie("token", {
       httpOnly: true,
       secure: true,
-      sameSite: "strict"
+      sameSite: "none",
+      path: '/'
     });
     return res.json({ message: "Logout successful", success: true });
   } else {
