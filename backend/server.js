@@ -26,29 +26,32 @@ const allowedOrigins = process.env.CLIENT_URL
 
 const PORT = process.env.PORT || 5001;
 
-// CORS must be FIRST - before any other middleware
-app.use(cors({
+console.log('Allowed Origins:', allowedOrigins);
+
+// CORS Configuration
+const corsOptions = {
   origin: function (origin, callback) {
-    // Allow requests with no origin (mobile apps, Postman, etc.)
+    console.log('Request from origin:', origin);
+    // Allow requests with no origin (mobile apps, Postman, server-to-server)
     if (!origin) return callback(null, true);
     
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      console.log('Blocked origin:', origin);
-      callback(new Error('Not allowed by CORS'));
+      console.log('❌ Blocked origin:', origin);
+      callback(null, false);
     }
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
   exposedHeaders: ['Set-Cookie'],
-  preflightContinue: false,
-  optionsSuccessStatus: 204
-}));
+  maxAge: 86400, // 24 hours
+  optionsSuccessStatus: 200
+};
 
-// Handle preflight requests explicitly
-app.options('*', cors());
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 
 const io = socketIo(server, {
   cors: {
@@ -66,6 +69,23 @@ global.io = io;
 app.use(express.json({ limit: '10mb' }));
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Health check route
+app.get('/', (req, res) => {
+  res.json({ 
+    success: true, 
+    message: 'Bus Management System API is running',
+    timestamp: new Date().toISOString()
+  });
+});
+
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    success: true, 
+    message: 'API is healthy',
+    allowedOrigins: allowedOrigins
+  });
+});
 
 // Routes
 app.use('/api/auth', authRoutes);
