@@ -105,7 +105,7 @@ const SimpleDriverMap = ({ route, busNumber, driverId, socket }) => {
   
   const updateLocationToBackend = async (location) => {
     try {
-      const response = await fetch('http://localhost:5001/api/driver/update-location', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/driver/update-location`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -141,7 +141,7 @@ const SimpleDriverMap = ({ route, busNumber, driverId, socket }) => {
     setTripStatus('ended');
     
     try {
-      await fetch('http://localhost:5001/api/driver/end-trip', {
+      await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/driver/end-trip`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

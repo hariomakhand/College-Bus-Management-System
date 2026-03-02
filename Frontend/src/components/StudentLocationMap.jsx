@@ -146,7 +146,7 @@ const StudentLocationMap = ({ busNumber, studentStop, route }) => {
     console.log('Connecting to track bus:', busNumber);
     fetchBusLocation();
 
-    const socket = io('http://localhost:5001', {
+    const socket = io(import.meta.env.VITE_API_URL || 'http://localhost:5001', {
       withCredentials: true,
       timeout: 5000
     });
@@ -195,7 +195,7 @@ const StudentLocationMap = ({ busNumber, studentStop, route }) => {
     if (!busNumber) return;
     
     try {
-      const response = await fetch(`http://localhost:5001/api/driver/bus-location/${busNumber}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/driver/bus-location/${busNumber}`, {
         credentials: 'include'
       });
       
