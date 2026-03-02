@@ -9,6 +9,9 @@ const crypto = require("crypto");
 // Nodemailer setup
 const transporter = nodemailer.createTransport({
     service: "gmail",
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: false,
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
@@ -18,16 +21,42 @@ const transporter = nodemailer.createTransport({
     }
 });
 
+// Verify transporter
+transporter.verify((error, success) => {
+    if (error) {
+        console.log('❌ Email transporter error:', error);
+    } else {
+        console.log('✅ Email server is ready to send messages');
+    }
+});
+
 // Send OTP email function
 const sendOTPEmail = async (email, otp) => {
-    const mailOptions = {
-        from: process.env.EMAIL_USER,
-        to: email,
-        subject: "Verify your Email",
-        html: `<p>Your OTP code is <b>${otp}</b>. It will expire in 5 minutes.</p>`
-    };
+    try {
+        const mailOptions = {
+            from: `"Bus Management System" <${process.env.EMAIL_USER}>`,
+            to: email,
+            subject: "Verify your Email - Bus Management System",
+            html: `
+                <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;">
+                    <div style="max-width: 600px; margin: 0 auto; background-color: white; padding: 30px; border-radius: 10px;">
+                        <h2 style="color: #EAB308;">Email Verification</h2>
+                        <p>Your OTP code is:</p>
+                        <h1 style="color: #1f2937; background-color: #FEF3C7; padding: 15px; text-align: center; border-radius: 5px;">${otp}</h1>
+                        <p style="color: #666;">This code will expire in 5 minutes.</p>
+                        <p style="color: #999; font-size: 12px; margin-top: 20px;">If you didn't request this, please ignore this email.</p>
+                    </div>
+                </div>
+            `
+        };
 
-    await transporter.sendMail(mailOptions);
+        const info = await transporter.sendMail(mailOptions);
+        console.log('✅ OTP email sent:', info.messageId);
+        return info;
+    } catch (error) {
+        console.error('❌ Error sending OTP email:', error);
+        throw new Error('Failed to send verification email');
+    }
 };
 
 // ---------------- Signup ----------------
@@ -61,12 +90,23 @@ const signup = async (req, res) => {
         });
 
         await newUser.save();
-        await sendOTPEmail(email, otp);
-
-        res.status(201).json({
-            message: " Please Verify Your Email",
-            success: true
-        });
+        
+        try {
+            await sendOTPEmail(email, otp);
+            res.status(201).json({
+                message: "Please Verify Your Email",
+                success: true
+            });
+        } catch (emailError) {
+            // Rollback user creation if email fails
+            await Model.deleteOne({ _id: newUser._id });
+            console.error('Email sending failed:', emailError);
+            return res.status(500).json({
+                message: "Failed to send verification email. Please try again.",
+                success: false,
+                error: emailError.message
+            });
+        }
     } catch (err) {
         console.log("Signup error:", err);
         res.status(500).json({
@@ -139,9 +179,17 @@ const resendOTP = async (req, res) => {
         user.emailVerificationExpiry = Date.now() + 5 * 60 * 1000;
         await user.save();
 
-        await sendOTPEmail(email, otp);
-
-        res.status(200).json({ message: "OTP resent successfully", success: true });
+        try {
+            await sendOTPEmail(email, otp);
+            res.status(200).json({ message: "OTP resent successfully", success: true });
+        } catch (emailError) {
+            console.error('Resend OTP failed:', emailError);
+            return res.status(500).json({ 
+                message: "Failed to resend OTP. Please try again.", 
+                success: false,
+                error: emailError.message 
+            });
+        }
     } catch (err) {
         res.status(500).json({ message: "Internal server error", success: false, error: err.message });
     }
@@ -221,27 +269,38 @@ const forgotPassword = async (req, res) => {
         user.resetPasswordExpire = Date.now() + 15 * 60 * 1000; // 15 min
         await user.save();
 
-        const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
+        const resetUrl = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
 
-        // Send Email (using nodemailer)
-        const resetTransporter = nodemailer.createTransport({
-            service: "gmail",
-            auth: {
-                user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_PASS,
-            },
-            tls: {
-                rejectUnauthorized: false
-            }
-        });
-
-        await resetTransporter.sendMail({
-            to: user.email,
-            subject: "Password Reset",
-            html: `<p>Click here to reset your password: <a href="${resetUrl}">${resetUrl}</a></p>`,
-        });
-
-        res.json({ message: "Password reset link sent to email" });
+        try {
+            await transporter.sendMail({
+                from: `"Bus Management System" <${process.env.EMAIL_USER}>`,
+                to: user.email,
+                subject: "Password Reset - Bus Management System",
+                html: `
+                    <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;">
+                        <div style="max-width: 600px; margin: 0 auto; background-color: white; padding: 30px; border-radius: 10px;">
+                            <h2 style="color: #EAB308;">Password Reset Request</h2>
+                            <p>You requested to reset your password. Click the button below:</p>
+                            <div style="text-align: center; margin: 30px 0;">
+                                <a href="${resetUrl}" style="background-color: #EAB308; color: #1f2937; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">Reset Password</a>
+                            </div>
+                            <p style="color: #666; font-size: 14px;">Or copy this link: <br><a href="${resetUrl}" style="color: #EAB308;">${resetUrl}</a></p>
+                            <p style="color: #999; font-size: 12px; margin-top: 20px;">This link will expire in 15 minutes.</p>
+                            <p style="color: #999; font-size: 12px;">If you didn't request this, please ignore this email.</p>
+                        </div>
+                    </div>
+                `,
+            });
+            console.log('✅ Password reset email sent to:', user.email);
+            res.json({ message: "Password reset link sent to email", success: true });
+        } catch (emailError) {
+            console.error('❌ Password reset email failed:', emailError);
+            return res.status(500).json({ 
+                message: "Failed to send reset email. Please try again.", 
+                success: false,
+                error: emailError.message 
+            });
+        }
     } catch (err) {
         res.status(500).json({ message: "Error in forgot password", error: err.message });
         console.log(err);
