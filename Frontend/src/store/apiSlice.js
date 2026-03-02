@@ -6,6 +6,10 @@ export const apiSlice = createApi({
     baseUrl: import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api` : 'http://localhost:5001/api',
     credentials: 'include',
     prepareHeaders: (headers, { getState }) => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        headers.set('Authorization', `Bearer ${token}`);
+      }
       headers.set('Content-Type', 'application/json');
       return headers;
     },

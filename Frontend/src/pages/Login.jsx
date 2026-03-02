@@ -19,6 +19,12 @@ export default function Login() {
     e.preventDefault();
     try {
       const result = await login({ email, password }).unwrap();
+      
+      // Store token in localStorage as fallback
+      if (result.token) {
+        localStorage.setItem('token', result.token);
+      }
+      
       toast.success(`Login successful as ${result.user.role}!`);
       setUser(result.user);
       switch (result.user.role.toLowerCase()) {

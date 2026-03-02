@@ -26,6 +26,11 @@ export default function EmailVerification() {
       const result = await response.json();
       
       if (result.success) {
+        // Store token in localStorage as fallback
+        if (result.token) {
+          localStorage.setItem('token', result.token);
+        }
+        
         alert("Email verified successfully! ✅");
         setUser(result.user);
         

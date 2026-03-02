@@ -145,18 +145,20 @@ const verifyEmail = async (req, res) => {
 
         res.cookie("token", token, {
             httpOnly: true,
-            secure: true,
-            sameSite: 'none',
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
             maxAge: 24 * 60 * 60 * 1000,
-            path: '/'
+            path: '/',
+            domain: process.env.COOKIE_DOMAIN || undefined
         });
 
         await user.save();
         res.status(200).json({ 
             message: "Email verified successfully",
-             success: true,
-              user: { _id: user._id, name: user.name, email: user.email, role: user.role }
-            });
+            success: true,
+            token,
+            user: { _id: user._id, name: user.name, email: user.email, role: user.role }
+        });
             
 
        
@@ -236,15 +238,17 @@ const login = async (req, res) => {
 
         res.cookie("token", token, {
             httpOnly: true,
-            secure: true,
-            sameSite: 'none',
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
             maxAge: 24 * 60 * 60 * 1000,
-            path: '/'
+            path: '/',
+            domain: process.env.COOKIE_DOMAIN || undefined
         });
 
         res.status(200).json({
             message: "Login successful",
             success: true,
+            token,
             user: { _id: user._id, name: user.name, email: user.email, role: userRole }
         });
         console.log("Login successful");
