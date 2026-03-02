@@ -3,8 +3,10 @@ const jwt = require("jsonwebtoken");
 
 const AuthProtect = (req, res, next) => {
   const token = req.cookies.token;
+  
   if (!token) {
-    return res.status(401).json({ message: "Unauthorized", success: false });
+    console.log('❌ No token found in cookies');
+    return res.status(401).json({ message: "Unauthorized - No token", success: false, isAuth: false });
   }
 
   try {
@@ -15,9 +17,11 @@ const AuthProtect = (req, res, next) => {
       email: decoded.email,
       role: decoded.role
     };
+    console.log('✅ Token verified for user:', decoded.email);
     next();
   } catch (err) {
-    return res.status(401).json({ message: "Unauthorized", success: false });
+    console.log('❌ Token verification failed:', err.message);
+    return res.status(401).json({ message: "Unauthorized - Invalid token", success: false, isAuth: false });
   }
 };
 

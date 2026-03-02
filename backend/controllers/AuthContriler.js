@@ -258,8 +258,15 @@ const login = async (req, res) => {
 const forgotPassword = async (req, res) => {
     try {
         const { email } = req.body;
+        
+        if (!email) {
+            return res.status(400).json({ message: "Email is required", success: false });
+        }
+
         const user = await UserModel.findOne({ email });
-        if (!user) return res.status(404).json({ message: "User not found" });
+        if (!user) {
+            return res.status(404).json({ message: "User not found", success: false });
+        }
 
         // Generate Token
         const resetToken = crypto.randomBytes(32).toString("hex");
@@ -269,7 +276,12 @@ const forgotPassword = async (req, res) => {
         user.resetPasswordExpire = Date.now() + 15 * 60 * 1000; // 15 min
         await user.save();
 
-        const resetUrl = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
+        // Get CLIENT_URL from env, handle multiple URLs
+        const clientUrl = process.env.CLIENT_URL?.split(',')[0]?.trim() || 'http://localhost:5173';
+        const resetUrl = `${clientUrl}/reset-password/${resetToken}`;
+
+        console.log('Sending password reset email to:', email);
+        console.log('Reset URL:', resetUrl);
 
         try {
             await transporter.sendMail({
@@ -295,15 +307,24 @@ const forgotPassword = async (req, res) => {
             res.json({ message: "Password reset link sent to email", success: true });
         } catch (emailError) {
             console.error('❌ Password reset email failed:', emailError);
+            // Rollback token if email fails
+            user.resetPasswordToken = undefined;
+            user.resetPasswordExpire = undefined;
+            await user.save();
+            
             return res.status(500).json({ 
-                message: "Failed to send reset email. Please try again.", 
+                message: "Failed to send reset email. Please check your email configuration.", 
                 success: false,
-                error: emailError.message 
+                error: process.env.NODE_ENV === 'development' ? emailError.message : 'Email service error'
             });
         }
     } catch (err) {
-        res.status(500).json({ message: "Error in forgot password", error: err.message });
-        console.log(err);
+        console.error('❌ Forgot password error:', err);
+        res.status(500).json({ 
+            message: "Error in forgot password", 
+            success: false,
+            error: process.env.NODE_ENV === 'development' ? err.message : 'Server error'
+        });
     }
 };
 
