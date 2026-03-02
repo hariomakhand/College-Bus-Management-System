@@ -29,9 +29,13 @@ const PORT = process.env.PORT || 5001;
 // CORS must be FIRST - before any other middleware
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
+    // Allow requests with no origin (mobile apps, Postman, etc.)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
+      console.log('Blocked origin:', origin);
       callback(new Error('Not allowed by CORS'));
     }
   },
@@ -42,6 +46,9 @@ app.use(cors({
   preflightContinue: false,
   optionsSuccessStatus: 204
 }));
+
+// Handle preflight requests explicitly
+app.options('*', cors());
 
 const io = socketIo(server, {
   cors: {
